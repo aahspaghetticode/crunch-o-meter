@@ -118,16 +118,24 @@ It refreshes every 15 minutes, which is the shortest interval Android allows in 
 
 ### Release builds
 
-Create `android/keystore.properties` (it's git-ignored):
+On your PC (Arch):
+
+```bash
+./install_deps.sh        # JDK 21, Android SDK command-line tools, SDK platform 37
+./build.sh --new-key     # only if you don't have a release keystore yet
+./build.sh               # or ./build.sh 1.2.0
+```
+
+`build.sh` signs with `android/keystore.properties` (git-ignored):
 
 ```properties
-storeFile=/path/to/release.jks
+storeFile=/absolute/path/to/release.jks
 storePassword=...
 keyAlias=...
 keyPassword=...
 ```
 
-Then `./gradlew assembleRelease`. The APK lands in `app/build/outputs/apk/release/`. Without the file, release builds are signed with the debug key and Gradle prints a warning.
+It refuses to build without that file, runs the unit tests, and writes `dist/crunch-o-meter-<version>.apk`. The version comes from the argument or the latest `v*` git tag; the version code is the commit count, so each build installs over the last. Back up the keystore: without it you can't ship an update that installs over a build signed with it.
 
 ### Donation reminder
 
