@@ -1,5 +1,6 @@
 package com.henw.crunchometer.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,7 +16,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
@@ -36,6 +42,8 @@ import java.util.Locale
 @Composable
 fun TasksScreen(section: Section<BoincData>, contentPadding: PaddingValues) {
     val data = section.data
+    // Queued tasks can number in the dozens; keep them folded away unless asked for.
+    var showWaiting by rememberSaveable { mutableStateOf(false) }
     LazyColumn(
         contentPadding = contentPadding,
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -49,9 +57,18 @@ fun TasksScreen(section: Section<BoincData>, contentPadding: PaddingValues) {
 
         item { CountsRow(data) }
 
-        item { SectionHeader("In progress", data.active.size) }
-        if (data.active.isEmpty()) item { EmptyNote("No tasks in the queue.") }
-        items(data.active, key = { "a:" + it.name }) { TaskCard(it) }
+        val (waiting, current) = data.active.partition { it.status == "waiting to run" }
+
+        item { SectionHeader("In progress", current.size) }
+        if (current.isEmpty()) item { EmptyNote("Nothing running right now.") }
+        items(current, key = { "a:" + it.name }) { TaskCard(it) }
+
+        if (waiting.isNotEmpty()) {
+            item(key = "waiting-header") {
+                WaitingHeader(waiting.size, showWaiting) { showWaiting = !showWaiting }
+            }
+            if (showWaiting) item(key = "waiting-list") { WaitingList(waiting) }
+        }
 
         item { SectionHeader("Completed", data.completed.size) }
         item {
@@ -59,6 +76,55 @@ fun TasksScreen(section: Section<BoincData>, contentPadding: PaddingValues) {
                 EmptyNote("Nothing completed recently.")
             } else {
                 CompletedList(data.completed)
+            }
+        }
+    }
+}
+
+@Composable
+private fun WaitingHeader(count: Int, expanded: Boolean, onToggle: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            "Waiting to run · $count",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
+        )
+        TextButton(onClick = onToggle) { Text(if (expanded) "Hide" else "Show") }
+    }
+}
+
+/** Queued tasks as compact rows in one card: no progress bar, since they haven't started. */
+@Composable
+private fun WaitingList(tasks: List<Task>) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            tasks.forEachIndexed { i, task ->
+                if (i > 0) HorizontalDivider()
+                Column(Modifier.padding(vertical = 8.dp)) {
+                    Text(task.project, style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        task.name,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    val details = buildList {
+                        task.remainingS?.let { add("~${formatDuration(it)}") }
+                        task.deadline?.let { add("due ${formatRelative(it)}") }
+                    }
+                    if (details.isNotEmpty()) {
+                        Text(
+                            details.joinToString(" · "),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (task.overdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
             }
         }
     }
