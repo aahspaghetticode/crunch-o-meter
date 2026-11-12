@@ -2,180 +2,143 @@
 
 # Crunch-o-meter
 
-Check on your BOINC box from your phone. An Android app plus a small server that runs next to BOINC on Arch.
+Keep an eye on your BOINC machine from your phone.
 
-What you see in the app:
+- **Tasks:** progress on everything running, what's queued, and what finished recently.
+- **Gridcoin:** your magnitude, wallet balance and pending research reward.
+- **System:** CPU and GPU load with live graphs, temperatures, clocks, power draw, VRAM and fan speed.
+- **LACT:** your GPU overclock, power limit and fan settings, view-only.
+- **Home screen widget:** the key numbers at a glance, transparent by default.
 
-- **Tasks:** progress on every running and queued task, and what finished recently (waiting to report, reported, errored).
-- **Gridcoin:** your magnitude, straight from the local wallet. If the wallet isn't running, an estimate from your RAC.
-- **System:** CPU and GPU load with five-minute graphs, temperatures, clocks, power draw, VRAM, fan speed.
-- **LACT:** your saved overclock, power limit and fan settings. Read-only.
-- **Home screen widget:** running tasks, top task progress, magnitude, CPU and GPU. Transparent by default.
+Free, open source, no ads, no trackers.
 
-The phone only ever talks to the server, over Tailscale, with a token. BOINC, the wallet and LACT never see the network.
+## How it works
 
-```
-phone ──tailnet──▶ tailscale serve (HTTPS) ──▶ crunch-o-meter on 127.0.0.1:8765
-                                                 ├─ BOINC GUI RPC        127.0.0.1:31416
-                                                 ├─ Gridcoin wallet RPC  127.0.0.1:15715
-                                                 ├─ NVML + psutil
-                                                 └─ LACT config + daemon socket (read-only)
-```
+Crunch-o-meter has two parts:
 
-## Server
+- a small **server** that runs on the computer doing the crunching, and
+- the **Android app**, which talks to that server over [Tailscale](https://tailscale.com).
 
-Unzip or clone into `~/crunch-o-meter`, then:
+Your BOINC client, Gridcoin wallet and GPU tools are never exposed to the network. Only the server is, and only inside your own tailnet, behind a token.
+
+## What you need
+
+- A Linux computer running BOINC (tested on Arch Linux), with Python 3.11 or newer
+- Tailscale on that computer and on your phone
+- An Android phone running Android 8.0 or newer
+- Optional: the Gridcoin wallet for magnitude and balance, an NVIDIA GPU for GPU stats, and LACT for overclock settings
+
+## 1. Install the server
 
 ```bash
+git clone https://github.com/aahspaghetticode/crunch-o-meter ~/crunch-o-meter
 cd ~/crunch-o-meter/server
 python -m venv .venv
 .venv/bin/pip install .
-
-mkdir -p ~/.config/crunch-o-meter
-cp config.example.toml ~/.config/crunch-o-meter/config.toml
-.venv/bin/crunch-o-meter gen-token        # paste it into [server] token
-.venv/bin/crunch-o-meter check            # tries BOINC, the wallet, the GPU and LACT once
 ```
 
-`check` tells you what's missing. Usually it's one of these:
-
-| Needs | Fix |
-|---|---|
-| BOINC's RPC password (`/var/lib/boinc/gui_rpc_auth.cfg`) | `sudo usermod -aG boinc $USER`, or set `boinc.password` |
-| LACT's daemon socket | be in a group listed under `daemon.admin_groups` in `/etc/lact/config.yaml` (wheel by default) |
-| Gridcoin wallet RPC | `server=1`, `rpcuser=` and `rpcpassword=` in `~/.GridcoinResearch/gridcoinresearch.conf`. Leave `rpcallowip` out so it stays local |
-
-Log out and back in after changing groups.
-
-Run it as a service:
+Create your config and a token. The token is the password your phone uses to connect.
 
 ```bash
+mkdir -p ~/.config/crunch-o-meter
+cp config.example.toml ~/.config/crunch-o-meter/config.toml
+.venv/bin/crunch-o-meter gen-token
+```
+
+Open `~/.config/crunch-o-meter/config.toml` and paste the token between the quotes in `token = "..."`. Keep a copy for your phone.
+
+Check that it can see everything:
+
+```bash
+.venv/bin/crunch-o-meter check
+```
+
+Each part shows `[ ok ]` or `[fail]` with a reason. The usual fixes:
+
+| If this fails | Do this |
+|---|---|
+| BOINC | `sudo usermod -aG boinc $USER`, then log out and back in |
+| Gridcoin | see [Gridcoin wallet](#gridcoin-wallet) below |
+| LACT | make sure your user is in a group listed under `admin_groups` in `/etc/lact/config.yaml` (`wheel` by default) |
+| CPU/GPU | GPU stats need the NVIDIA driver; everything else works without it |
+
+Then start it in the background, and keep it running after reboots:
+
+```bash
+mkdir -p ~/.config/systemd/user
 cp crunch-o-meter.service ~/.config/systemd/user/
 systemctl --user daemon-reload
 systemctl --user enable --now crunch-o-meter
-loginctl enable-linger "$USER"            # keeps it running when you're logged out
-journalctl --user -u crunch-o-meter -f
+loginctl enable-linger $USER
 ```
 
-### Put it on your tailnet
+## 2. Make it reachable from your phone
 
 ```bash
 sudo tailscale serve --bg 8765
-tailscale serve status                    # prints https://<host>.<tailnet>.ts.net
+tailscale serve status
 ```
 
-This needs HTTPS certificates switched on for the tailnet (Tailscale admin console, DNS page). See `tailscale serve --help`.
+The second command prints your server's address, something like `https://my-pc.tail1234.ts.net`. This needs HTTPS turned on for your tailnet: in the Tailscale admin console, go to **DNS** and enable **HTTPS Certificates**.
 
-No `tailscale serve`? Set `bind_host` to the box's `tailscale ip -4` and use `http://<host>.<tailnet>.ts.net:8765` in the app. The app allows plain HTTP to `*.ts.net` names only.
+## 3. Install the app
 
-### API
+Download the latest APK from the [Releases](https://github.com/aahspaghetticode/crunch-o-meter/releases) page and open it on your phone.
 
-Everything except `/api/health` needs `Authorization: Bearer <token>`.
-
-| Endpoint | Returns |
-|---|---|
-| `GET /api/summary` | all sections at once (what the app polls) |
-| `GET /api/boinc`, `/gridcoin`, `/system`, `/lact` | one section |
-| `GET /api/health` | `{"ok": true}`, no auth |
-
-Each section looks like `{ok, error, updated_at, data}`. When a poll fails, `data` keeps the last good result and `error` says what broke.
-
-### Gridcoin estimate
-
-Only used when the wallet RPC can't be reached. Add a factor per project under `[gridcoin.mag_per_rac]`:
-
-```
-mag_per_rac        = (network magnitude / whitelisted projects) / project's total RAC
-estimated magnitude = sum of (your RAC on project × mag_per_rac)
-```
-
-Project totals and the whitelist are on gridcoinstats.eu. The network magnitude total is on the Gridcoin wiki's magnitude page (115,000 under the Fern protocol; check it's still current). The factors drift as projects grow, so update them every so often. When the wallet is up, the app shows the real figure with the estimate underneath for comparison.
-
-### Tests
-
-```bash
-.venv/bin/pip install -e '.[test]'
-.venv/bin/pytest
-```
-
-The tests run against fake BOINC, wallet and LACT services. They also write `android/app/src/test/resources/sample_summary.json`, which the Android unit tests decode, so a change to the JSON on one side breaks the build on the other.
-
-## Android app
-
-AGP 9.4 (Kotlin built in), Gradle 9.6, Kotlin 2.4.21, Compose BOM 2026.08.00, Material 3, Glance 1.2, WorkManager 2.12, OkHttp 5, kotlinx.serialization. Android 8.0 and up; wallpaper colours on Android 12 and up.
-
-1. Open `android/` in Android Studio and let it sync.
-2. Run it on your phone.
-3. In **Settings**, paste your `https://<host>.<tailnet>.ts.net` address and the token, tap **Test connection**, then **Save**.
-
-It only polls while it's on screen. The token stays in app-private storage and is left out of backups.
+In the app, go to **Settings**, enter your server address and token, tap **Test connection**, then **Save**.
 
 ### Widget
 
-Long-press the home screen, add **Crunch-o-meter**, and pick what it shows: tasks, magnitude, CPU, GPU. You can also set background opacity (0% is fully transparent) and text tone (follow light/dark mode, always light, always dark). On Android 12+ you can skip the setup when adding it and change it later from the widget's long-press menu.
+Long-press your home screen, choose **Widgets**, and add **Crunch-o-meter**. You can choose what it shows, how see-through the background is, and whether the text is light or dark. To change it later, long-press the widget.
 
-It refreshes every 15 minutes, which is the shortest interval Android allows in the background, and every minute while the app is open. Tap it to open the app.
+The widget updates every 15 minutes (Android doesn't allow more often in the background), and every minute while the app is open. Tap it to open the app.
 
-### Release builds
+## Gridcoin wallet
 
-On your PC (Arch):
-
-```bash
-./install_deps.sh        # JDK 21, Android SDK command-line tools, SDK platform 37
-./build.sh --new-key     # only if you don't have a release keystore yet
-./build.sh               # or ./build.sh 1.2.0
-```
-
-`build.sh` signs with `android/keystore.properties` and the password on the first line of `password.txt` in the repo root (both git-ignored):
-
-```properties
-storeFile=/absolute/path/to/release.jks
-keyAlias=...
-```
-
-If the keystore and key passwords differ, put `storePassword=` and `keyPassword=` lines in `keystore.properties` instead.
-
-It refuses to build without that file, runs the unit tests, and writes `dist/crunch-o-meter-<version>.apk`. The version comes from the argument or the latest `v*` git tag; the version code is the commit count, so each build installs over the last. Back up the keystore: without it you can't ship an update that installs over a build signed with it.
-
-### Donation reminder
-
-After the third launch, the app shows a donation reminder at most once every four days, and only after a successful refresh. The addresses live in `data/Donations.kt`. While that list is empty, the reminder never shows.
-
-The dev code `stfu-bro` turns the reminder off for good. Enter it from the reminder or from Settings. The reminder tells people they can find the code in the source, or donate and email the transaction hash to shutup@clowds.net to get it.
-
-## GitHub Actions
-
-- **`ci.yml`** runs on every push and pull request: server tests, then the Android unit tests, lint and a release build. The APK is attached to the run as an artifact (debug-signed).
-- **`release.yml`** runs when you push a tag like `v1.2.0`. It builds a signed APK with the version from the tag and publishes it as a GitHub Release.
-
-For signed releases, add these repository secrets: `CRUNCH_KEYSTORE_BASE64` (output of `base64 -w0 release.jks`), `CRUNCH_KEYSTORE_PASSWORD`, `CRUNCH_KEY_ALIAS`, `CRUNCH_KEY_PASSWORD`. Then:
-
-```bash
-git tag v1.0.0 && git push origin v1.0.0
-```
-
-## Project layout
+Crunch-o-meter reads your magnitude and balance from the wallet on the same computer. Turn on the wallet's local RPC by adding these lines to `gridcoinresearch.conf` in your wallet's data folder (usually `~/.GridcoinResearch/`):
 
 ```
-server/
-  crunchometer/        boinc_rpc, gridcoin, system (CPU/NVML), lact, app (FastAPI), __main__
-  tests/               fakes for BOINC, the wallet and LACT, plus API tests
-  config.example.toml
-  crunch-o-meter.service
-android/app/src/main/java/com/henw/crunchometer/
-  MainActivity.kt      scaffold, bottom nav, polling
-  data/                JSON models, HTTP client, settings, donation config
-  ui/                  view model, donation dialog, screens, shared components
-  widget/              Glance widget, its settings screen, background refresh
+server=1
+rpcuser=crunch
+rpcpassword=<a long random string>
 ```
 
-## Further reading
+You can make a random string with `openssl rand -hex 32`. Restart the wallet afterwards. Don't add `rpcallowip`, so the RPC stays private to that computer.
 
-- BOINC GUI RPC: the "GUI RPC" page on the BOINC wiki, and `lib/gui_rpc_client.cpp` in the BOINC source.
-- Gridcoin wallet commands: type `help` in the wallet's debug console.
-- LACT's config file: `docs/CONFIG.md` in the LACT repository.
-- NVML: NVIDIA's NVML API reference, "Device Queries".
-- AGP 9 and built-in Kotlin: Android Developers, "Migrate to built-in Kotlin".
+If your wallet's data folder is somewhere else, such as an external drive, point Crunch-o-meter at it in `~/.config/crunch-o-meter/config.toml` under `[gridcoin]`:
+
+```toml
+conf_file = "/path/to/your/gridcoinresearch.conf"
+```
+
+When the wallet isn't running, the app can show an estimate from your BOINC RAC instead. That needs per-project factors in the config; the comments in `config.example.toml` explain how.
+
+## Troubleshooting
+
+| What you see | What it means |
+|---|---|
+| **HTTP 502** in the app | Tailscale is fine, but the server isn't running. Run `systemctl --user status crunch-o-meter`. |
+| **Server rejected the token** | The token in the app doesn't match the one in `config.toml`. |
+| **Can't resolve host** or **timed out** | Tailscale isn't connected on your phone or the computer. |
+| Service shows `status=203/EXEC` | The service can't find the program. Make sure you installed with the venv steps above, in `~/crunch-o-meter/server`. |
+| Service shows `status=2` | Your config has a mistake. Run `crunch-o-meter check` to see which line. |
+| Gridcoin shows **source: none** | The wallet isn't running, or the RPC settings above aren't set. |
+
+To see the server's log: `journalctl --user -u crunch-o-meter -n 50`
+
+## Privacy
+
+The app talks only to your own server, over your own tailnet. No analytics, no ads, no third-party services. Your token is stored only on your phone and is left out of backups.
+
+## Support the app
+
+Crunch-o-meter is free and stays that way. If it's useful to you, the app shows donation addresses every few days, and you can open them any time under **Settings → Support**.
+
+Want those reminders gone? There's a code hidden somewhere in the source. Or donate and email your transaction hash to shutup@clowds.net, and you'll get the code.
+
+## Contributing
+
+Building from source, running the tests and how the code is laid out: see [DEVELOPING.md](DEVELOPING.md).
 
 ## License
 
