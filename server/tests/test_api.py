@@ -110,6 +110,16 @@ def test_gridcoin_wallet_with_estimate(client):
     assert g["estimate"] == pytest.approx(50.0, abs=0.01)
 
 
+def test_gridcoin_balance_and_pending(client):
+    w = summary(client)["gridcoin"]["data"]["wallet"]
+    assert w["balance"] == pytest.approx(1234.5678)
+    assert w["staked"] == pytest.approx(2000.0)
+    assert w["immature"] == pytest.approx(12.5)
+    assert w["unconfirmed"] == pytest.approx(3.25)
+    assert w["pending_research_reward"] == pytest.approx(42.1875)
+    assert w["researcher_status"] == "Eligible for Research Rewards"
+
+
 def test_lact_settings_readable(client):
     gpu = summary(client)["lact"]["data"]["gpus"][0]
     assert gpu["name"] == "NVIDIA GeForce RTX 4090"

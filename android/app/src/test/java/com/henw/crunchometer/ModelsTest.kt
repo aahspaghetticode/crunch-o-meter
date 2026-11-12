@@ -38,6 +38,9 @@ class ModelsTest {
         val grc = requireData(s.gridcoin.data)
         assertEquals("wallet", grc.source)
         assertEquals(187.43, grc.magnitude!!, 0.001)
+        val wallet = requireData(grc.wallet)
+        assertEquals(1234.5678, wallet.balance!!, 0.0001)
+        assertEquals(42.1875, wallet.pendingResearchReward!!, 0.0001)
 
         val lact = requireData(s.lact.data)
         assertEquals("NVIDIA GeForce RTX 4090", lact.gpus.single().name)

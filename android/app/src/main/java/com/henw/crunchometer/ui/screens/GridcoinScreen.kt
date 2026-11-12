@@ -61,6 +61,19 @@ fun GridcoinScreen(
             }
         }
 
+        g?.wallet?.let { w ->
+            item {
+                SectionCard(title = "Wallet") {
+                    BigNumber(grc(w.balance), "balance")
+                    StatRow("Pending research reward", grc(w.pendingResearchReward))
+                    StatRow("Staking", grc(w.staked))
+                    if ((w.immature ?: 0.0) > 0) StatRow("Maturing stake rewards", grc(w.immature))
+                    if ((w.unconfirmed ?: 0.0) > 0) StatRow("Unconfirmed", grc(w.unconfirmed))
+                    w.researcherStatus?.let { EmptyNote(it) }
+                }
+            }
+        }
+
         val perProject = g?.perProject.orEmpty()
         if (perProject.isNotEmpty()) {
             item {
@@ -107,3 +120,5 @@ fun GridcoinScreen(
         }
     }
 }
+
+private fun grc(value: Double?): String = if (value == null) "—" else formatNumber(value, 2) + " GRC"

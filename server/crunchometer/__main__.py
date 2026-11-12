@@ -47,6 +47,10 @@ def _check(cfg) -> int:
     if grc:
         print(f"       source={grc['source']} magnitude={grc['magnitude']}"
               + (f"  (wallet: {grc['wallet_error']})" if grc.get("wallet_error") else ""))
+        w = grc.get("wallet")
+        if w:
+            print(f"       balance={w['balance']} pending_research_reward={w['pending_research_reward']} "
+                  f"status={w['researcher_status']!r}")
     sampler = SystemSampler(cfg.system.history_samples)
     sysd = report("CPU/GPU", sampler.sample)
     if sysd:

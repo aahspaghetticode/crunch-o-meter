@@ -75,9 +75,18 @@ class WalletHandler(BaseHTTPRequestHandler):
         if req["method"] == "magnitude":
             res = {"result": None, "error": {"code": -32601, "message": "Method not found"}}
             code = 500
+        elif req["method"] == "getwalletinfo":
+            res = {"result": {"walletversion": 60000, "balance": 1234.5678, "newmint": 12.5,
+                              "stake": 2000.0, "staking": True}, "error": None}
+            code = 200
+        elif req["method"] == "getunconfirmedbalance":
+            res = {"result": 3.25, "error": None}
+            code = 200
         else:
             res = {"result": {"blocks": 3000000, "CPID": "0123456789abcdef0123456789abcdef",
-                              "Magnitude Unit": 0.25, "current_magnitude": 187.43}, "error": None}
+                              "Magnitude Unit": 0.25, "current_magnitude": 187.43,
+                              "BoincRewardPending": 42.1875,
+                              "researcher_status": "Eligible for Research Rewards"}, "error": None}
             code = 200
         body = json.dumps(res).encode()
         self.send_response(code); self.send_header("Content-Length", str(len(body))); self.end_headers()

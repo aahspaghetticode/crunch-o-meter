@@ -94,6 +94,19 @@ data class GridcoinData(
     /** Present when source == wallet: the config-based estimate, for comparison. */
     val estimate: Double? = null,
     @SerialName("wallet_error") val walletError: String? = null,
+    /** Balance and rewards; null when the wallet RPC can't be reached. */
+    val wallet: WalletInfo? = null,
+)
+
+@Serializable
+data class WalletInfo(
+    val balance: Double? = null,
+    val staked: Double? = null,
+    /** Stake rewards not yet matured ("newmint"). */
+    val immature: Double? = null,
+    val unconfirmed: Double? = null,
+    @SerialName("pending_research_reward") val pendingResearchReward: Double? = null,
+    @SerialName("researcher_status") val researcherStatus: String? = null,
 )
 
 @Serializable

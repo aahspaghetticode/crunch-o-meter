@@ -77,6 +77,36 @@ def _find_cpid(obj) -> str | None:
     return None
 
 
+def _num(v) -> float | None:
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, (int, float)):
+        return float(v)
+    if isinstance(v, str):
+        try:
+            return float(v.replace("GRC", "").strip())
+        except ValueError:
+            return None
+    return None
+
+
+def _find_pending_reward(obj) -> tuple[str, float] | None:
+    """Accrued-but-unpaid research reward. Older wallets call it BoincRewardPending;
+    newer ones word it differently, so match on 'pending'/'accru' plus a reward-ish word."""
+    if isinstance(obj, dict):
+        for key, val in obj.items():
+            k = key.lower().replace(" ", "_")
+            if ("pending" in k or "accru" in k) and any(w in k for w in ("reward", "research", "boinc", "accru")):
+                n = _num(val)
+                if n is not None:
+                    return key, n
+        for key, val in obj.items():
+            hit = _find_pending_reward(val)
+            if hit:
+                return hit
+    return None
+
+
 class GridcoinClient:
     def __init__(self, cfg: GridcoinConfig):
         self.cfg = cfg
@@ -128,6 +158,37 @@ class GridcoinClient:
                         "note": f"From wallet RPC '{method}' field '{field}'."}
         raise GridcoinError("; ".join(errors) or "Wallet returned no magnitude field")
 
+    def wallet_info(self) -> dict:
+        """Balance and rewards. Each call is separate so one unsupported RPC doesn't hide the rest."""
+        info: dict = {"balance": None, "staked": None, "immature": None, "unconfirmed": None,
+                      "pending_research_reward": None, "researcher_status": None}
+        try:
+            w = self._call("getwalletinfo") or {}
+            info["balance"] = _num(w.get("balance"))
+            info["staked"] = _num(w.get("stake"))
+            info["immature"] = _num(w.get("newmint"))
+        except GridcoinError:
+            try:
+                info["balance"] = _num(self._call("getbalance"))
+            except GridcoinError:
+                pass
+        try:
+            info["unconfirmed"] = _num(self._call("getunconfirmedbalance"))
+        except GridcoinError:
+            pass
+        try:
+            m = self._call("getmininginfo") or {}
+            hit = _find_pending_reward(m)
+            if hit:
+                info["pending_research_reward"] = hit[1]
+            status = m.get("researcher_status") if isinstance(m, dict) else None
+            info["researcher_status"] = status if isinstance(status, str) else None
+        except GridcoinError:
+            pass
+        if all(v is None for v in info.values()):
+            raise GridcoinError("wallet returned no balance information")
+        return info
+
     def estimate(self, boinc_projects: list[dict]) -> dict:
         rows, total = [], 0.0
         for proj in boinc_projects:
@@ -152,10 +213,15 @@ class GridcoinClient:
         if not self.cfg.enabled:
             return est
         try:
-            wallet = self.from_wallet()
-            wallet["per_project"] = est["per_project"]
-            wallet["estimate"] = est["magnitude"]
-            return wallet
+            wallet_info = self.wallet_info()
+        except GridcoinError:
+            wallet_info = None
+        try:
+            result = self.from_wallet()
+            result["per_project"] = est["per_project"]
+            result["estimate"] = est["magnitude"]
         except GridcoinError as exc:
-            est["wallet_error"] = str(exc)
-            return est
+            result = est
+            result["wallet_error"] = str(exc)
+        result["wallet"] = wallet_info
+        return result
