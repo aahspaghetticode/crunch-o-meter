@@ -7,14 +7,16 @@
 #
 # Signing comes from android/keystore.properties (git-ignored):
 #   storeFile=/absolute/path/to/release.jks
-#   storePassword=...
 #   keyAlias=...
-#   keyPassword=...
-# This script refuses to build without it, so you never ship a debug-signed APK by accident.
+# and the password from password.txt in the repo root (git-ignored, first line,
+# used for both the keystore and the key). storePassword=/keyPassword= lines in
+# keystore.properties still work and take priority.
+# This script refuses to build without a key, so you never ship a debug-signed APK by accident.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROPS="$ROOT/android/keystore.properties"
+PWFILE="$ROOT/password.txt"
 
 step() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
 die()  { printf '\033[31merror:\033[0m %s\n' "$*" >&2; exit 1; }
@@ -26,6 +28,7 @@ command -v java >/dev/null || die "No JDK found. Run ./install_deps.sh first."
 # --- Optional: make a new signing key ----------------------------------------
 if [ "${1:-}" = "--new-key" ]; then
     [ -f "$PROPS" ] && die "$PROPS already exists. Move it away first if you really want a new key."
+    [ -f "$PWFILE" ] && die "$PWFILE already exists. Move it away first so the new key gets its own password."
     KEYSTORE="${KEYSTORE:-$HOME/.android/crunch-o-meter-release.jks}"
     mkdir -p "$(dirname "$KEYSTORE")"
     read -rsp "New keystore password (6+ chars): " PW; echo
@@ -33,8 +36,8 @@ if [ "${1:-}" = "--new-key" ]; then
         -keyalg RSA -keysize 4096 -validity 10000 \
         -storepass "$PW" -keypass "$PW" -dname "CN=Henw, O=Crunch-o-meter"
     umask 077
-    printf 'storeFile=%s\nstorePassword=%s\nkeyAlias=crunch-o-meter\nkeyPassword=%s\n' \
-        "$KEYSTORE" "$PW" "$PW" > "$PROPS"
+    printf 'storeFile=%s\nkeyAlias=crunch-o-meter\n' "$KEYSTORE" > "$PROPS"
+    [ -f "$PWFILE" ] || printf '%s\n' "$PW" > "$PWFILE"
     step "Key created"
     echo "Keystore: $KEYSTORE"
     echo "Back it up somewhere safe. Lose it and you can never ship an update that installs over this one."
@@ -43,9 +46,18 @@ fi
 
 # --- Checks -----------------------------------------------------------------
 [ -f "$PROPS" ] || die "No android/keystore.properties. Create it (see the top of this script) or run ./build.sh --new-key"
-for k in storeFile storePassword keyAlias keyPassword; do
+for k in storeFile keyAlias; do
     [ -n "$(prop "$k")" ] || die "keystore.properties is missing $k"
 done
+if [ -z "$(prop storePassword)" ] || [ -z "$(prop keyPassword)" ]; then
+    [ -f "$PWFILE" ] || die "No password: put it on the first line of password.txt in the repo root"
+    PW="$(head -n1 "$PWFILE" | tr -d '\r\n')"
+    [ -n "$PW" ] || die "password.txt is empty"
+    # Gradle falls back to these env vars when keystore.properties has no password lines.
+    export CRUNCH_KEYSTORE_PASSWORD="${CRUNCH_KEYSTORE_PASSWORD:-$PW}"
+    export CRUNCH_KEY_PASSWORD="${CRUNCH_KEY_PASSWORD:-$PW}"
+    unset PW
+fi
 STORE="$(prop storeFile)"
 [ -f "$STORE" ] || die "Keystore not found: $STORE"
 [ -f "$ROOT/android/local.properties" ] || [ -n "${ANDROID_HOME:-}" ] \

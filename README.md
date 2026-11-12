@@ -126,14 +126,14 @@ On your PC (Arch):
 ./build.sh               # or ./build.sh 1.2.0
 ```
 
-`build.sh` signs with `android/keystore.properties` (git-ignored):
+`build.sh` signs with `android/keystore.properties` and the password on the first line of `password.txt` in the repo root (both git-ignored):
 
 ```properties
 storeFile=/absolute/path/to/release.jks
-storePassword=...
 keyAlias=...
-keyPassword=...
 ```
+
+If the keystore and key passwords differ, put `storePassword=` and `keyPassword=` lines in `keystore.properties` instead.
 
 It refuses to build without that file, runs the unit tests, and writes `dist/crunch-o-meter-<version>.apk`. The version comes from the argument or the latest `v*` git tag; the version code is the commit count, so each build installs over the last. Back up the keystore: without it you can't ship an update that installs over a build signed with it.
 

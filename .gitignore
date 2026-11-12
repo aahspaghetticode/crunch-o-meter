@@ -18,6 +18,7 @@ android/app/build/
 android/keystore.properties
 *.jks
 *.keystore
+password.txt
 
 # Built APKs
 dist/
