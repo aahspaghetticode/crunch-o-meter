@@ -78,8 +78,7 @@ The reminder appears from the third launch, at most once every four days, and on
 
 ## GitHub Actions
 
-- **`ci.yml`** runs on every push and pull request: server tests, then the Android unit tests, lint and a release build. The APK is attached to the run as an artifact (debug-signed).
-- **`release.yml`** runs when you push a tag like `v1.2.0`. It builds a signed APK with the version from the tag and publishes it as a GitHub Release. Signing needs these repository secrets: `CRUNCH_KEYSTORE_BASE64` (output of `base64 -w0 release.jks`), `CRUNCH_KEYSTORE_PASSWORD`, `CRUNCH_KEY_ALIAS`, `CRUNCH_KEY_PASSWORD`.
+- **`ci.yml`** runs on every push and pull request: server tests, then the Android unit tests, lint and a release build. The APK is attached to the run as an artifact (debug-signed). Releases are built locally with `build.sh` and uploaded by hand.
 
 ## Project layout
 
