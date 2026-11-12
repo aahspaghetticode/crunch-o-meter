@@ -34,9 +34,10 @@ android {
         applicationId = "com.henw.crunchometer"
         minSdk = 26 // dynamic (Material You) colour on Android 12+, a fixed palette below that
         targetSdk = 36
-        // The release workflow passes these from the git tag; local builds use the defaults.
-        versionCode = (findProperty("crunch.versionCode") as String?)?.toIntOrNull() ?: 1
-        versionName = (findProperty("crunch.versionName") as String?) ?: "1.0.0"
+        // Bump both for every release; versionCode must always go up.
+        // Kept as plain literals: F-Droid reads them with a regex and never runs Gradle.
+        versionCode = 11
+        versionName = "1.0.0"
     }
 
     signingConfigs {
@@ -71,6 +72,13 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    // Leave out the dependency metadata blob AGP embeds for Google Play; only Google
+    // can read it, and F-Droid / IzzyOnDroid scanners reject it.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 
     lint {

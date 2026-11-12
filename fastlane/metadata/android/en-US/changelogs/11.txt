@@ -1,0 +1,1 @@
+First release: tasks with progress, Gridcoin magnitude, balance and pending reward, CPU/GPU stats, read-only LACT settings, and a home screen widget.

@@ -1,0 +1,1 @@
+Watch BOINC tasks, Gridcoin magnitude and CPU/GPU load on your phone

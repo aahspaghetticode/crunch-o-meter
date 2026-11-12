@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Builds a signed release APK into dist/.
 #
-#   ./build.sh                 # version from the latest git tag (v1.2.0 -> 1.2.0), or 1.0.0
-#   ./build.sh 1.3.0           # explicit version
+#   ./build.sh                 # builds the version set in android/app/build.gradle.kts
 #   ./build.sh --new-key       # create a release keystore + android/keystore.properties, then stop
 #
 # Signing comes from android/keystore.properties (git-ignored):
@@ -64,19 +63,19 @@ STORE="$(prop storeFile)"
     || die "Android SDK not set up. Run ./install_deps.sh first."
 
 # --- Version ----------------------------------------------------------------
-VERSION="${1:-}"
-if [ -z "$VERSION" ]; then
-    VERSION="$(git -C "$ROOT" describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || true)"
-    VERSION="${VERSION:-1.0.0}"
-fi
-# Commit count only goes up, so every build can install over the previous one.
-CODE="$(git -C "$ROOT" rev-list --count HEAD 2>/dev/null || echo 1)"
+# The version lives in build.gradle.kts as plain numbers (F-Droid reads it from there).
+[ -z "${1:-}" ] || die "Set the version in android/app/build.gradle.kts (versionName and versionCode), not on the command line."
+GRADLE_FILE="$ROOT/android/app/build.gradle.kts"
+VERSION="$(grep -oE 'versionName = "[^"]+"' "$GRADLE_FILE" | head -n1 | cut -d'"' -f2)"
+CODE="$(grep -oE 'versionCode = [0-9]+' "$GRADLE_FILE" | head -n1 | grep -oE '[0-9]+')"
+[ -n "$VERSION" ] && [ -n "$CODE" ] || die "Couldn't read versionName/versionCode from $GRADLE_FILE"
+CHANGELOG="$ROOT/fastlane/metadata/android/en-US/changelogs/$CODE.txt"
+[ -f "$CHANGELOG" ] || printf '\033[33mwarning:\033[0m no changelog for this version: %s\n' "$CHANGELOG"
 
 # --- Build ------------------------------------------------------------------
 step "Building Crunch-o-meter $VERSION (versionCode $CODE)"
 cd "$ROOT/android"
-./gradlew --console=plain testDebugUnitTest assembleRelease \
-    -Pcrunch.versionName="$VERSION" -Pcrunch.versionCode="$CODE"
+./gradlew --console=plain testDebugUnitTest assembleRelease
 
 APK="app/build/outputs/apk/release/app-release.apk"
 [ -f "$APK" ] || die "Build finished but $APK is missing"

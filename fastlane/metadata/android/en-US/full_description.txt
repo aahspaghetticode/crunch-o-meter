@@ -1,0 +1,18 @@
+Keep an eye on your BOINC machine from your phone.
+
+<b>What you see</b>
+<ul>
+<li><b>Tasks:</b> progress on everything running, a collapsible list of what's queued, and what finished recently.</li>
+<li><b>Gridcoin:</b> your magnitude, wallet balance and pending research reward.</li>
+<li><b>System:</b> CPU and GPU load with live graphs, temperatures, clocks, power draw, VRAM and fan speed.</li>
+<li><b>LACT:</b> your GPU overclock, power limit and fan settings, view-only.</li>
+<li><b>Home screen widget:</b> the key numbers at a glance, with adjustable transparency.</li>
+</ul>
+
+<b>How it works</b>
+Crunch-o-meter talks to a small server that runs on your BOINC computer, over your own Tailscale network. Your BOINC client, Gridcoin wallet and GPU tools stay off the network. The server and its setup guide are in the project's repository.
+
+<b>Privacy</b>
+The app only connects to your own server. It has no analytics, ads, trackers or third-party services. Plain HTTP is allowed only to Tailscale addresses (*.ts.net), which Tailscale already encrypts.
+
+The app shows donation addresses every few days. A code hidden in the source turns that off.

@@ -58,7 +58,7 @@ On Arch:
 ```bash
 ./install_deps.sh        # JDK 21, Android SDK command-line tools, SDK platform 37
 ./build.sh --new-key     # only if you don't have a release keystore yet
-./build.sh               # or ./build.sh 1.2.0
+./build.sh
 ```
 
 `build.sh` signs with `android/keystore.properties` and the password on the first line of `password.txt` in the repo root (both git-ignored):
@@ -70,7 +70,20 @@ keyAlias=...
 
 If the keystore and key passwords differ, put `storePassword=` and `keyPassword=` lines in `keystore.properties` instead.
 
-It refuses to build without a key, runs the unit tests, and writes `dist/crunch-o-meter-<version>.apk`. The version comes from the argument or the latest `v*` git tag. The version code is the commit count, so each build installs over the last. Back up the keystore. Without it, you can't ship an update that installs over a build signed with it.
+It refuses to build without a key, runs the unit tests, and writes `dist/crunch-o-meter-<version>.apk`. Back up the keystore. Without it, you can't ship an update that installs over a build signed with it.
+
+### Releasing a new version
+
+1. In `android/app/build.gradle.kts`, set `versionName` (e.g. `"1.1.0"`) and raise `versionCode` by one. It must always go up, or phones won't install the update.
+2. Write `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`: what changed, in plain words, under 500 characters.
+3. Commit, then run `./build.sh`.
+4. On GitHub, draft a release with the tag `v<versionName>` and attach `dist/crunch-o-meter-<versionName>.apk`.
+
+IzzyOnDroid picks the APK up from the release. F-Droid finds the new version from the tag and the numbers in `build.gradle.kts`, which is why they're plain literals there.
+
+### Store listing
+
+`fastlane/metadata/android/en-US/` holds the title, descriptions, icon, screenshots and per-version changelogs that F-Droid and IzzyOnDroid display. Screenshots go in `images/phoneScreenshots/` as `1.png`, `2.png` and so on, in the order they should appear.
 
 ### Donation reminder
 
