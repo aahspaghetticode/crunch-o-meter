@@ -85,6 +85,8 @@ The second command prints your server's address, something like `https://my-pc.t
 
 Download the latest APK from the [Releases](https://github.com/aahspaghetticode/crunch-o-meter/releases) page and open it on your phone.
 
+To get updates automatically, install it with [Obtainium](https://github.com/ImranR98/Obtainium) instead: tap **Add App**, paste `https://github.com/aahspaghetticode/crunch-o-meter`, and tap **Add**. Obtainium installs the latest release and lets you know when a new one is out.
+
 In the app, go to **Settings**, enter your server address and token, tap **Test connection**, then **Save**.
 
 ### Widget
