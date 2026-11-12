@@ -19,7 +19,7 @@ Crunch-o-meter has two parts:
 - a small **server** that runs on the computer doing the crunching, and
 - the **Android app**, which talks to that server over [Tailscale](https://tailscale.com).
 
-Your BOINC client, Gridcoin wallet and GPU tools are never exposed to the network. Only the server is, and only inside your own tailnet, behind a token.
+Your BOINC client, Gridcoin wallet and GPU tools stay off the network. Only the server listens, and only inside your own tailnet, behind a token.
 
 ## What you need
 
@@ -53,7 +53,7 @@ Check that it can see everything:
 .venv/bin/crunch-o-meter check
 ```
 
-Each part shows `[ ok ]` or `[fail]` with a reason. The usual fixes:
+Each part shows `[ ok ]`, or `[fail]` with a reason. The usual fixes are below.
 
 | If this fails | Do this |
 |---|---|
@@ -128,17 +128,17 @@ To see the server's log: `journalctl --user -u crunch-o-meter -n 50`
 
 ## Privacy
 
-The app talks only to your own server, over your own tailnet. No analytics, no ads, no third-party services. Your token is stored only on your phone and is left out of backups.
+The app talks only to your own server, over your own tailnet. It has no analytics, ads or third-party services. Your token stays on your phone and is left out of backups.
 
 ## Support the app
 
-Crunch-o-meter is free and stays that way. If it's useful to you, the app shows donation addresses every few days, and you can open them any time under **Settings → Support**.
+Crunch-o-meter is free. Every few days the app shows donation addresses, and you can open them any time under **Settings → Support**.
 
-Want those reminders gone? There's a code hidden somewhere in the source. Or donate and email your transaction hash to shutup@clowds.net, and you'll get the code.
+A code hidden in the source turns the reminders off. If you'd rather not dig, donate and email your transaction hash to shutup@clowds.net, and you'll get the code.
 
 ## Contributing
 
-Building from source, running the tests and how the code is laid out: see [DEVELOPING.md](DEVELOPING.md).
+[DEVELOPING.md](DEVELOPING.md) covers building from source, running the tests and how the code is laid out.
 
 ## License
 

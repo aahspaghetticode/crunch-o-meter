@@ -70,11 +70,11 @@ keyAlias=...
 
 If the keystore and key passwords differ, put `storePassword=` and `keyPassword=` lines in `keystore.properties` instead.
 
-It refuses to build without a key, runs the unit tests, and writes `dist/crunch-o-meter-<version>.apk`. The version comes from the argument or the latest `v*` git tag; the version code is the commit count, so each build installs over the last. Back up the keystore: without it you can't ship an update that installs over a build signed with it.
+It refuses to build without a key, runs the unit tests, and writes `dist/crunch-o-meter-<version>.apk`. The version comes from the argument or the latest `v*` git tag. The version code is the commit count, so each build installs over the last. Back up the keystore. Without it, you can't ship an update that installs over a build signed with it.
 
 ### Donation reminder
 
-Shown after the third launch, at most once every four days, and only after a successful refresh. Addresses, timing and the off-code live in `data/Donations.kt`. An empty address list turns the reminder off.
+The reminder appears from the third launch, at most once every four days, and only after a successful refresh. `data/Donations.kt` holds the addresses, the timing and the code that turns it off. An empty address list disables it.
 
 ## GitHub Actions
 
