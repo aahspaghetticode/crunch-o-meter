@@ -28,7 +28,7 @@ val hasReleaseKey = signing.values.all { !it.isNullOrBlank() }
 
 android {
     namespace = "com.henw.crunchometer"
-    compileSdk = 36
+    compileSdk = 37 // current Compose, AndroidX and OkHttp releases require 37
 
     defaultConfig {
         applicationId = "com.henw.crunchometer"
