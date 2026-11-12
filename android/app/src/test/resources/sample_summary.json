@@ -1,0 +1,221 @@
+{
+ "version": "1.0.0",
+ "generated_at": 1794496178.2945306,
+ "boinc": {
+  "ok": true,
+  "error": null,
+  "updated_at": 1794496178.243846,
+  "data": {
+   "projects": [
+    {
+     "url": "https://einsteinathome.org/",
+     "name": "Einstein@Home",
+     "user_total_credit": 1234567.5,
+     "user_rac": 25000.5,
+     "host_total_credit": 500000.0,
+     "host_rac": 20000.0,
+     "suspended": false,
+     "no_new_work": false
+    },
+    {
+     "url": "https://www.worldcommunitygrid.org/",
+     "name": "World Community Grid",
+     "user_total_credit": 99999.0,
+     "user_rac": 3000.0,
+     "host_total_credit": 99999.0,
+     "host_rac": 3000.0,
+     "suspended": false,
+     "no_new_work": true
+    }
+   ],
+   "active": [
+    {
+     "name": "h1_0123_O3_task_1",
+     "project": "Einstein@Home",
+     "project_url": "https://einsteinathome.org/",
+     "resources": "1 CPU + 1 NVIDIA GPU",
+     "deadline": 1999999999.0,
+     "status": "running",
+     "progress_percent": 42.315,
+     "elapsed_s": 1300.2,
+     "remaining_s": 1800.5,
+     "overdue": false
+    },
+    {
+     "name": "MCM1_queued_2",
+     "project": "World Community Grid",
+     "project_url": "https://www.worldcommunitygrid.org/",
+     "resources": null,
+     "deadline": 1000.0,
+     "status": "waiting to run",
+     "progress_percent": 0.0,
+     "elapsed_s": null,
+     "remaining_s": 9000.0,
+     "overdue": true
+    }
+   ],
+   "completed": [
+    {
+     "name": "MCM1_done_3",
+     "project": "World Community Grid",
+     "project_url": "https://www.worldcommunitygrid.org/",
+     "resources": null,
+     "deadline": null,
+     "app": null,
+     "status": "ready to report",
+     "exit_status": 0,
+     "elapsed_s": 8100.0,
+     "cpu_s": 8000.0,
+     "completed_at": 1731400000.0
+    },
+    {
+     "name": "old_einstein_9",
+     "project": "Einstein@Home",
+     "project_url": "https://einsteinathome.org/",
+     "resources": null,
+     "deadline": null,
+     "app": "einsteinbinary_BRP7",
+     "status": "reported",
+     "exit_status": 0,
+     "elapsed_s": 3600.0,
+     "cpu_s": 300.0,
+     "completed_at": 1731300000.0
+    },
+    {
+     "name": "MCM1_bad_4",
+     "project": "World Community Grid",
+     "project_url": "https://www.worldcommunitygrid.org/",
+     "resources": null,
+     "deadline": null,
+     "app": null,
+     "status": "error",
+     "exit_status": -161,
+     "elapsed_s": null,
+     "cpu_s": null,
+     "completed_at": null
+    }
+   ],
+   "counts": {
+    "running": 1,
+    "waiting": 1,
+    "suspended": 0,
+    "transferring": 0,
+    "ready_to_report": 1,
+    "errors": 1
+   }
+  }
+ },
+ "gridcoin": {
+  "ok": true,
+  "error": null,
+  "updated_at": 1794496178.2515461,
+  "data": {
+   "source": "wallet",
+   "magnitude": 187.43,
+   "cpid": "0123456789abcdef0123456789abcdef",
+   "note": "From wallet RPC 'getmininginfo' field 'current_magnitude'.",
+   "per_project": [
+    {
+     "name": "Einstein@Home",
+     "url": "https://einsteinathome.org/",
+     "rac": 25000.5,
+     "mag_per_rac": 0.002,
+     "magnitude": 50.001
+    },
+    {
+     "name": "World Community Grid",
+     "url": "https://www.worldcommunitygrid.org/",
+     "rac": 3000.0,
+     "mag_per_rac": null,
+     "magnitude": null
+    }
+   ],
+   "estimate": 50.0
+  }
+ },
+ "system": {
+  "ok": true,
+  "error": null,
+  "updated_at": 1794496178.2420785,
+  "data": {
+   "hostname": "vm",
+   "cpu": {
+    "model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "usage_percent": 0.0,
+    "per_core": [
+     0.0,
+     0.0
+    ],
+    "freq_mhz": 2100,
+    "temp_c": null,
+    "load_avg": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "mem_used_bytes": 597401600,
+    "mem_total_bytes": 8412139520
+   },
+   "gpus": [],
+   "gpu_error": "NVML init failed: NVML Shared Library Not Found",
+   "history": {
+    "cpu": [
+     0.0,
+     2.0,
+     0.0
+    ],
+    "gpu": []
+   }
+  }
+ },
+ "lact": {
+  "ok": true,
+  "error": null,
+  "updated_at": 1794496178.2406092,
+  "data": {
+   "daemon_reachable": true,
+   "daemon_error": null,
+   "current_profile": null,
+   "gpus": [
+    {
+     "id": "10DE:2684-1043:889D-0000:01:00.0",
+     "name": "NVIDIA GeForce RTX 4090",
+     "settings": [
+      {
+       "key": "power_cap",
+       "value": "400.0"
+      },
+      {
+       "key": "clocks_configuration.gpu_clock_offsets",
+       "value": "P0: +150"
+      },
+      {
+       "key": "clocks_configuration.mem_clock_offsets",
+       "value": "P0: +1000"
+      },
+      {
+       "key": "clocks_configuration.max_core_clock",
+       "value": "2800"
+      },
+      {
+       "key": "fan_control_enabled",
+       "value": "True"
+      },
+      {
+       "key": "fan_control_settings.mode",
+       "value": "curve"
+      },
+      {
+       "key": "fan_control_settings.static_speed",
+       "value": "0.5"
+      },
+      {
+       "key": "fan_control_settings.curve",
+       "value": "40: 0.3, 60: 0.5, 80: 1.0"
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,20 @@
+# Python
+server/.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# Android
+android/.gradle/
+android/.idea/
+android/.kotlin/
+android/local.properties
+android/build/
+android/app/build/
+*.iml
+
+# Release signing - never commit these
+android/keystore.properties
+*.jks
+*.keystore

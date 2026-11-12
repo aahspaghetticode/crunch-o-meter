@@ -1,0 +1,17 @@
+# systemd user unit. Install:
+#   cp crunch-o-meter.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now crunch-o-meter
+#   loginctl enable-linger "$USER"   # keep it running while you're logged out
+[Unit]
+Description=Crunch-o-meter API (BOINC, Gridcoin, GPU, LACT)
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=%h/crunch-o-meter/server/.venv/bin/crunch-o-meter
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

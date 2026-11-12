@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: pip install -e '.[test]'
+      - run: pytest -q
+      # The tests write a real API response; the Android job decodes it with the
+      # Kotlin models, so server/app JSON drift fails CI.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sample-summary
+          path: android/app/src/test/resources/sample_summary.json
+
+  android:
+    runs-on: ubuntu-latest
+    needs: server
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
+        with:
+          name: sample-summary
+          path: android/app/src/test/resources
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          # MIT-licensed cache; the default provider is proprietary as of v6.
+          cache-provider: basic
+      # CI builds are debug-signed; sign real releases locally with keystore.properties.
+      - run: ./gradlew testDebugUnitTest lintRelease assembleRelease
+      - uses: actions/upload-artifact@v7
+        with:
+          name: crunch-o-meter-apk
+          path: android/app/build/outputs/apk/release/*.apk

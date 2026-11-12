@@ -1,0 +1,45 @@
+# Crunch-o-meter server config. Copy to ~/.config/crunch-o-meter/config.toml
+
+[server]
+# Keep 127.0.0.1 and expose it with `tailscale serve` (HTTPS, tailnet only).
+# Or put the host's Tailscale IP here (see `tailscale ip -4`) to skip tailscale serve.
+bind_host = "127.0.0.1"
+port = 8765
+# Generate with: crunch-o-meter gen-token
+token = "PASTE_A_TOKEN_HERE"
+
+[boinc]
+host = "127.0.0.1"
+port = 31416
+# Read from this file by default (be in the `boinc` group), or set password directly.
+password_file = "/var/lib/boinc/gui_rpc_auth.cfg"
+# password = "..."
+poll_seconds = 10
+
+[gridcoin]
+# Local wallet RPC. Needs in ~/.GridcoinResearch/gridcoinresearch.conf:
+#   server=1
+#   rpcuser=...
+#   rpcpassword=...
+# Leave rpcallowip / rpcbind at defaults so it stays localhost-only.
+enabled = true
+rpc_url = "http://127.0.0.1:15715/"
+conf_file = "~/.GridcoinResearch/gridcoinresearch.conf"
+poll_seconds = 300
+
+# Fallback estimate when the wallet isn't running: magnitude per point of your RAC,
+# keyed by the BOINC project's master URL exactly as BOINC reports it.
+# See README "Gridcoin estimate" for how to work these out.
+[gridcoin.mag_per_rac]
+# "https://www.worldcommunitygrid.org/" = 0.0
+# "https://einsteinathome.org/" = 0.0
+
+[system]
+poll_seconds = 2
+history_samples = 150
+
+[lact]
+enabled = true
+socket_path = "/run/lactd.sock"
+config_file = "/etc/lact/config.yaml"
+poll_seconds = 30

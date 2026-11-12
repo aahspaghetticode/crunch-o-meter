@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Crunch-o-meter</string>
+    <string name="widget_name">Crunch-o-meter</string>
+    <string name="widget_description">BOINC progress, magnitude and CPU/GPU load at a glance</string>
+</resources>

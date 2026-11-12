@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Default: HTTPS only (what you get with `tailscale serve`).
+  Plain HTTP is allowed only to MagicDNS names (*.ts.net). Traffic to those is
+  already encrypted end to end by WireGuard inside the tailnet.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">ts.net</domain>
+    </domain-config>
+</network-security-config>

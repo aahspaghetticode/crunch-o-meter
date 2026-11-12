@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crunch-o-meter"
+dynamic = ["version"]
+description = "API server for the Crunch-o-meter app: BOINC tasks, Gridcoin magnitude, CPU/GPU stats, LACT settings"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn>=0.32",
+    "psutil>=6.0",
+    "nvidia-ml-py>=12.560",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8", "httpx2"]
+
+[project.scripts]
+crunch-o-meter = "crunchometer.__main__:main"
+
+[tool.setuptools]
+packages = ["crunchometer"]
+
+[tool.setuptools.dynamic]
+version = { attr = "crunchometer.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
