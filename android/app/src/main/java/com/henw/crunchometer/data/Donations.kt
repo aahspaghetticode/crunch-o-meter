@@ -7,14 +7,14 @@ data class DonationAddress(
 )
 
 object Donations {
-    /**
-     * Fill these in before release. While the list is empty the reminder never
-     * appears and Settings hides the "Donation addresses" button.
-     */
+    /** If this list is ever emptied, the reminder and the Settings button disappear. */
     val ADDRESSES: List<DonationAddress> = listOf(
-        // DonationAddress("Gridcoin (GRC)", "S..."),
-        // DonationAddress("Bitcoin (BTC)", "bc1..."),
-        // DonationAddress("Monero (XMR)", "4..."),
+        // One EVM address works on all of these networks.
+        DonationAddress("Ethereum, Arbitrum, Base, BNB Chain, Linea", "0x109e12c6D24423534434cFC541B79D4EE4B4f85a"),
+        DonationAddress("Bitcoin", "bc1qt9zcg6keenpdjkw667ztrecyd2t4nraxp0430t"),
+        DonationAddress("Solana", "HoAidBZ8AB55hF3MwnPwPdHoGHdL9YHfGSXhC48hJvNk"),
+        DonationAddress("Tron", "TN7Ge6i8xcEbDJxLHoiihrxJ5AS3oepWec"),
+        DonationAddress("Stellar", "GDJPDKUU52WW6IJFY2RFRIVQBKMPREH7V24IT4VBRTGLVCCJJIGIX5YQ"),
     )
 
     /**
