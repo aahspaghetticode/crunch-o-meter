@@ -48,13 +48,13 @@ fun DonationDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Crunch-o-meter is free") },
+        title = { Text("Hey, looks like you like my app!") },
         text = {
             Column(
                 Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text("No ads, no tracking. If it's earned a spot on your phone, a donation keeps it that way.")
+                Text("Donate? Just 5 bucks keeps this app open source, free, and tracker free.")
                 Donations.ADDRESSES.forEachIndexed { i, a ->
                     if (i > 0) HorizontalDivider()
                     AddressRow(a.label, a.address)
