@@ -85,6 +85,12 @@ IzzyOnDroid picks the APK up from the release. F-Droid finds the new version fro
 
 `fastlane/metadata/android/en-US/` holds the title, descriptions, icon, screenshots and per-version changelogs that F-Droid and IzzyOnDroid display. Screenshots go in `images/phoneScreenshots/` as `1.png`, `2.png` and so on, in the order they should appear.
 
+### AUR package
+
+`packaging/aur/` holds the `PKGBUILD` and post-install message for the `crunch-o-meter` AUR package. It builds the server from the GitHub release tarball and installs the systemd user unit with `ExecStart=/usr/bin/crunch-o-meter`.
+
+For each release: copy both files into your AUR clone, set `pkgver` (and reset `pkgrel=1`), then run `updpkgsums`, `makepkg -si`, `namcap PKGBUILD *.pkg.tar.zst` and `makepkg --printsrcinfo > .SRCINFO`, and push. See the ArchWiki's "AUR submission guidelines".
+
 ### Donation reminder
 
 The reminder appears from the third launch, at most once every four days, and only after a successful refresh. `data/Donations.kt` holds the addresses, the timing and the code that turns it off. An empty address list disables it.

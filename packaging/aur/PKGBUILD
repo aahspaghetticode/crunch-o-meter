@@ -1,0 +1,38 @@
+# Maintainer: henw_ <https://github.com/aahspaghetticode>
+pkgname=crunch-o-meter
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="Server for the Crunch-o-meter Android app: BOINC tasks, Gridcoin magnitude, CPU/GPU stats and LACT settings"
+arch=('any')
+url="https://github.com/aahspaghetticode/crunch-o-meter"
+license=('MIT')
+depends=('python' 'python-fastapi' 'uvicorn' 'python-psutil' 'python-yaml')
+makedepends=('python-build' 'python-installer' 'python-wheel' 'python-setuptools')
+optdepends=(
+  'python-nvidia-ml-py: NVIDIA GPU stats'
+  'boinc: the BOINC client it reports on'
+  'tailscale: reach the server from your phone'
+  'lact: show GPU overclock settings'
+)
+install=crunch-o-meter.install
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')  # run `updpkgsums` after tagging the release
+
+build() {
+  cd "$pkgname-$pkgver/server"
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  python -m installer --destdir="$pkgdir" server/dist/*.whl
+
+  # systemd user unit, pointed at the packaged binary instead of a venv
+  install -Dm644 server/crunch-o-meter.service "$pkgdir/usr/lib/systemd/user/crunch-o-meter.service"
+  sed -i 's#^ExecStart=.*#ExecStart=/usr/bin/crunch-o-meter#' \
+    "$pkgdir/usr/lib/systemd/user/crunch-o-meter.service"
+
+  install -Dm644 server/config.example.toml "$pkgdir/usr/share/doc/$pkgname/config.example.toml"
+  install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
