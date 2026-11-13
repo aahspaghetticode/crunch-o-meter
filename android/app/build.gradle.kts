@@ -56,11 +56,13 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = if (hasReleaseKey) {
-                signingConfigs.getByName("release")
-            } else {
-                logger.warn("No release key (keystore.properties or CRUNCH_* env vars): signing release with the debug key")
-                signingConfigs.getByName("debug")
+            // No release key -> unsigned APK (what F-Droid builds and verifies against
+            // the published one). CI passes -Pcrunch.debugSignRelease=true so its
+            // artifact is installable for testing.
+            signingConfig = when {
+                hasReleaseKey -> signingConfigs.getByName("release")
+                findProperty("crunch.debugSignRelease") == "true" -> signingConfigs.getByName("debug")
+                else -> null
             }
         }
     }

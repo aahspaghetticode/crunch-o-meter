@@ -54,7 +54,7 @@ jobs:
           # MIT-licensed cache; the default provider is proprietary as of v6.
           cache-provider: basic
       # CI builds are debug-signed; sign real releases locally with keystore.properties.
-      - run: ./gradlew testDebugUnitTest lintRelease assembleRelease
+      - run: ./gradlew testDebugUnitTest lintRelease assembleRelease -Pcrunch.debugSignRelease=true
       - uses: actions/upload-artifact@v7
         with:
           name: crunch-o-meter-apk
