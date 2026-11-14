@@ -17,7 +17,7 @@ optdepends=(
 )
 install=crunch-o-meter.install
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('SKIP')  # run `updpkgsums` after tagging the release
+sha256sums=('e49f281b1b80f78e1a646f9df6c68f13f7e15cddf1cdc925176c818128b59f8f')
 
 build() {
   cd "$pkgname-$pkgver/server"
