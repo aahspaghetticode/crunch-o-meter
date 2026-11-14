@@ -25,3 +25,6 @@ dist/
 
 # setuptools build output
 server/build/
+
+# Clone of the fdroiddata fork (gitlab.com/hgamerrevived/fdroiddata), its own repo
+fdroid/
