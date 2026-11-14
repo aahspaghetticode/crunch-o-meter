@@ -27,6 +27,11 @@ rpc_url = "http://127.0.0.1:15715/"
 conf_file = "~/.GridcoinResearch/gridcoinresearch.conf"
 poll_seconds = 300
 
+# Earning rate (GRC/hour, GRC/day) from per-minute wallet samples. Defaults shown.
+# rate_sample_seconds = 60
+# rate_window_hours = 24
+# rate_jump_threshold = 50     # bigger changes count as transfers, not earnings
+
 # Fallback estimate when the wallet isn't running: magnitude per point of your RAC,
 # keyed by the BOINC project's master URL exactly as BOINC reports it.
 # See README "Gridcoin estimate" for how to work these out.

@@ -41,6 +41,9 @@ class ModelsTest {
         val wallet = requireData(grc.wallet)
         assertEquals(1234.5678, wallet.balance!!, 0.0001)
         assertEquals(42.1875, wallet.pendingResearchReward!!, 0.0001)
+        val earnings = requireData(grc.earnings)
+        assertEquals(1.0, earnings.perHour, 0.05)
+        assertEquals(earnings.perHour * 24, earnings.perDay, 0.01)
 
         val lact = requireData(s.lact.data)
         assertEquals("NVIDIA GeForce RTX 4090", lact.gpus.single().name)

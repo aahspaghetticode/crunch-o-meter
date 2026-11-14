@@ -13,6 +13,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from . import __version__
 from .boinc_rpc import BoincClient
 from .config import Config
+from .earnings import EarningsTracker, default_state_file, wallet_total
 from .gridcoin import GridcoinClient
 from .lact import LactReader
 from .system import SystemSampler
@@ -31,6 +32,9 @@ class State:
         self.gridcoin = GridcoinClient(cfg.gridcoin)
         self.lact = LactReader(cfg.lact)
         self.system = SystemSampler(cfg.system.history_samples)
+        g = cfg.gridcoin
+        self.earnings = EarningsTracker(g.rate_state_file or default_state_file(),
+                                        g.rate_window_hours, g.rate_jump_threshold)
         empty = {"ok": False, "error": "not polled yet", "updated_at": None, "data": None}
         self.cache = {k: dict(empty) for k in ("boinc", "gridcoin", "system", "lact")}
         if not cfg.lact.enabled:
@@ -60,7 +64,24 @@ class State:
 
     def _gridcoin(self):
         projects = (self.cache["boinc"].get("data") or {}).get("projects") or []
-        return self.gridcoin.snapshot(projects)
+        result = self.gridcoin.snapshot(projects)
+        result["earnings"] = self.earnings.rate()
+        return result
+
+    async def _sample_earnings(self):
+        """Once a minute: record wallet total, and refresh the rate in the cached section."""
+        while True:
+            try:
+                info = await asyncio.to_thread(self.gridcoin.wallet_info)
+                total = wallet_total(info)
+                if total is not None:
+                    self.earnings.add(total)
+                    data = self.cache["gridcoin"].get("data")
+                    if data is not None:
+                        data["earnings"] = self.earnings.rate()
+            except Exception as exc:  # wallet down: just skip this sample
+                log.debug("earnings sample skipped: %s", exc)
+            await asyncio.sleep(self.cfg.gridcoin.rate_sample_seconds)
 
     def tasks(self) -> list[asyncio.Task]:
         c = self.cfg
@@ -71,6 +92,8 @@ class State:
         ]
         if c.lact.enabled:
             loops.append(self._loop("lact", c.lact.poll_seconds, self.lact.snapshot))
+        if c.gridcoin.enabled:
+            loops.append(self._sample_earnings())
         return [asyncio.create_task(l) for l in loops]
 
 
@@ -85,6 +108,7 @@ def create_app(cfg: Config) -> FastAPI:
             t.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
         state.system.close()
+        state.earnings.save()
 
     app = FastAPI(title="Crunch-o-meter", version=__version__, lifespan=lifespan,
                   docs_url=None, redoc_url=None, openapi_url=None)

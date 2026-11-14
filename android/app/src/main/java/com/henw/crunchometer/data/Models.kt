@@ -96,6 +96,18 @@ data class GridcoinData(
     @SerialName("wallet_error") val walletError: String? = null,
     /** Balance and rewards; null when the wallet RPC can't be reached. */
     val wallet: WalletInfo? = null,
+    /** Earning rate from per-minute wallet samples; null until ~10 minutes of history. */
+    val earnings: Earnings? = null,
+)
+
+@Serializable
+data class Earnings(
+    @SerialName("per_hour") val perHour: Double = 0.0,
+    @SerialName("per_day") val perDay: Double = 0.0,
+    /** How many hours of samples the rate is based on (up to the configured window). */
+    @SerialName("window_hours") val windowHours: Double = 0.0,
+    /** Changes big enough to be transfers, left out of the rate. */
+    @SerialName("skipped_jumps") val skippedJumps: Int = 0,
 )
 
 @Serializable

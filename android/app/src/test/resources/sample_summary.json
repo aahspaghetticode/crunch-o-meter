@@ -1,10 +1,10 @@
 {
  "version": "1.0.0",
- "generated_at": 1794516059.3025992,
+ "generated_at": 1794616188.195096,
  "boinc": {
   "ok": true,
   "error": null,
-  "updated_at": 1794516059.035501,
+  "updated_at": 1794616188.1223714,
   "data": {
    "projects": [
     {
@@ -108,7 +108,7 @@
  "gridcoin": {
   "ok": true,
   "error": null,
-  "updated_at": 1794516059.0688682,
+  "updated_at": 1794616188.1149528,
   "data": {
    "source": "wallet",
    "magnitude": 187.43,
@@ -138,31 +138,38 @@
     "unconfirmed": 3.25,
     "pending_research_reward": 42.1875,
     "researcher_status": "Eligible for Research Rewards"
+   },
+   "earnings": {
+    "per_hour": 0.999857,
+    "per_day": 23.9966,
+    "window_hours": 2.0,
+    "samples": 122,
+    "skipped_jumps": 0
    }
   }
  },
  "system": {
   "ok": true,
   "error": null,
-  "updated_at": 1794516059.0338352,
+  "updated_at": 1794616188.1230466,
   "data": {
    "hostname": "vm",
    "cpu": {
     "model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
-    "usage_percent": 3.4,
+    "usage_percent": 1.9,
     "per_core": [
-     2.9,
+     0.0,
      3.9
     ],
     "freq_mhz": 2100,
     "temp_c": null,
     "load_avg": [
-     0.16015625,
-     0.033203125,
-     0.0107421875
+     0.06689453125,
+     0.037109375,
+     0.00439453125
     ],
-    "mem_used_bytes": 570589184,
-    "mem_total_bytes": 8412139520
+    "mem_used_bytes": 565108736,
+    "mem_total_bytes": 8413868032
    },
    "gpus": [],
    "gpu_error": "NVML init failed: NVML Shared Library Not Found",
@@ -170,7 +177,7 @@
     "cpu": [
      0.0,
      0.0,
-     3.4
+     1.9
     ],
     "gpu": []
    }
@@ -179,7 +186,7 @@
  "lact": {
   "ok": true,
   "error": null,
-  "updated_at": 1794516059.0303113,
+  "updated_at": 1794616188.1217341,
   "data": {
    "daemon_reachable": true,
    "daemon_error": null,

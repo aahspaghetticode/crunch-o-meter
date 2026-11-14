@@ -39,6 +39,12 @@ def client(tmp_path_factory):
     svc = fakes.start_all(tmp)
     (tmp / "lact.yaml").write_text(LACT_YAML)
     (tmp / "gc.conf").write_text("server=1\nrpcuser=u\nrpcpassword=p\n")
+    # Two hours of history at 1 GRC/hour ending at the fake wallet's total, so the
+    # sample response (and the Android test reading it) carries a real rate.
+    now = time.time()
+    total = 1234.5678 + 2000.0 + 12.5 + 3.25 + 42.1875
+    samples = [[now - (120 - m) * 60, total - (120 - m) / 60] for m in range(120)]
+    (tmp / "samples.json").write_text(json.dumps({"samples": samples}))
     cfg_path = tmp / "config.toml"
     cfg_path.write_text(f"""
 [server]
@@ -51,6 +57,8 @@ poll_seconds = 1
 rpc_url = "http://127.0.0.1:{svc['wallet_port']}/"
 conf_file = "{tmp / 'gc.conf'}"
 poll_seconds = 2
+rate_sample_seconds = 1
+rate_state_file = "{tmp / 'samples.json'}"
 [gridcoin.mag_per_rac]
 "https://einsteinathome.org/" = 0.002
 [system]
@@ -108,6 +116,14 @@ def test_gridcoin_wallet_with_estimate(client):
     assert g["magnitude"] == pytest.approx(187.43)
     assert g["cpid"] == "0123456789abcdef0123456789abcdef"
     assert g["estimate"] == pytest.approx(50.0, abs=0.01)
+
+
+def test_gridcoin_earnings_rate(client):
+    e = summary(client)["gridcoin"]["data"]["earnings"]
+    assert e is not None
+    assert abs(e["per_hour"] - 1.0) < 0.05
+    assert abs(e["per_day"] - 24.0) < 1.2
+    assert e["window_hours"] >= 1.9
 
 
 def test_gridcoin_balance_and_pending(client):

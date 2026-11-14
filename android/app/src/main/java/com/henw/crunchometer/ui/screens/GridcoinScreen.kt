@@ -24,6 +24,7 @@ import com.henw.crunchometer.ui.components.ErrorBanner
 import com.henw.crunchometer.ui.components.Pill
 import com.henw.crunchometer.ui.components.SectionCard
 import com.henw.crunchometer.ui.components.StatRow
+import com.henw.crunchometer.ui.components.formatDuration
 import com.henw.crunchometer.ui.components.formatNumber
 import java.util.Locale
 
@@ -65,6 +66,17 @@ fun GridcoinScreen(
             item {
                 SectionCard(title = "Wallet") {
                     BigNumber(grc(w.balance), "balance")
+                    val e = g?.earnings
+                    if (e != null) {
+                        StatRow("Earning per hour", grc(e.perHour, decimals = 4))
+                        StatRow("Earning per day", grc(e.perDay))
+                        EmptyNote(
+                            "Based on the last ${formatDuration(e.windowHours * 3600)} of balance and pending reward" +
+                                if (e.skippedJumps > 0) ", skipping ${e.skippedJumps} transfer(s)." else "."
+                        )
+                    } else {
+                        StatRow("Earning rate", "measuring…")
+                    }
                     StatRow("Pending research reward", grc(w.pendingResearchReward))
                     StatRow("Staking", grc(w.staked))
                     if ((w.immature ?: 0.0) > 0) StatRow("Maturing stake rewards", grc(w.immature))
@@ -121,4 +133,5 @@ fun GridcoinScreen(
     }
 }
 
-private fun grc(value: Double?): String = if (value == null) "—" else formatNumber(value, 2) + " GRC"
+private fun grc(value: Double?, decimals: Int = 2): String =
+    if (value == null) "—" else formatNumber(value, decimals) + " GRC"

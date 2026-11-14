@@ -50,6 +50,14 @@ class GridcoinConfig:
     # Fallback estimate: magnitude per point of RAC, keyed by BOINC project master URL.
     # See README "Gridcoin estimate" for how to fill these in.
     mag_per_rac: dict[str, float] = field(default_factory=dict)
+    # Earning rate (GRC/hour and GRC/day): sample the wallet this often...
+    rate_sample_seconds: float = 60.0
+    # ...and average over this many hours of samples.
+    rate_window_hours: float = 24.0
+    # A change bigger than this between two samples is a transfer, not earnings.
+    rate_jump_threshold: float = 50.0
+    # Where samples are kept between restarts. Empty means ~/.local/state/crunch-o-meter/.
+    rate_state_file: str = ""
 
 
 @dataclass
