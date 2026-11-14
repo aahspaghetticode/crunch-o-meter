@@ -1,6 +1,6 @@
 # Maintainer: henw_ <https://github.com/aahspaghetticode>
 pkgname=crunch-o-meter
-pkgver=1.0.0
+pkgver=1.1.0
 pkgrel=1
 pkgdesc="Server for the Crunch-o-meter Android app: BOINC tasks, Gridcoin magnitude, CPU/GPU stats and LACT settings"
 arch=('any')

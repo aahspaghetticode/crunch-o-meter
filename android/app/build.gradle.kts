@@ -36,8 +36,8 @@ android {
         targetSdk = 36
         // Bump both for every release; versionCode must always go up.
         // Kept as plain literals: F-Droid reads them with a regex and never runs Gradle.
-        versionCode = 11
-        versionName = "1.0.0"
+        versionCode = 12
+        versionName = "1.1.0"
     }
 
     signingConfigs {

@@ -1,0 +1,5 @@
+Multiple machines: add each BOINC computer in Settings, switch between them from the top bar, and see them all on the new Machines tab. Each widget can show its own machine.
+
+AMD GPU support: load, temperatures (edge and hotspot), clocks, power, VRAM and fan. Needs server 1.1.0.
+
+Gridcoin: shows your earning rate in GRC per hour and per day.
