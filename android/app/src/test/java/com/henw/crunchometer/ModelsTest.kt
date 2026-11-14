@@ -9,6 +9,7 @@ import com.henw.crunchometer.widget.toSnapshot
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -69,6 +70,8 @@ class ModelsTest {
         assertEquals(42.315, w.topProgress!!, 0.001)
         assertEquals(187.43, w.magnitude!!, 0.001)
         assertFalse(w.magnitudeIsEstimate)
+        assertNull(w.machine)
+        assertEquals("rig", sample().toSnapshot(nowMs = 1L, machine = "rig").machine)
     }
 
     @Test

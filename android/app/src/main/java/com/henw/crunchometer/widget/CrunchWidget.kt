@@ -154,12 +154,13 @@ private fun WidgetBody(snap: WidgetSnapshot?, cfg: WidgetConfig) {
 private fun footer(snap: WidgetSnapshot): String {
     val context = LocalContext.current
     val time = if (snap.updatedAtMs > 0) DateFormat.getTimeFormat(context).format(Date(snap.updatedAtMs)) else null
-    return when {
+    val status = when {
         snap.error != null && time != null -> "Offline · last at $time"
         snap.error != null -> snap.error
         time != null -> "Updated $time"
         else -> ""
     }
+    return listOfNotNull(snap.machine, status.ifBlank { null }).joinToString(" · ")
 }
 
 private fun Double.oneDecimal() = String.format(Locale.US, "%.1f", this)

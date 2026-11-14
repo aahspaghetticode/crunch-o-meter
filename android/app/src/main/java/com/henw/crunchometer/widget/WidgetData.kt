@@ -22,9 +22,11 @@ data class WidgetSnapshot(
     val cpuPercent: Double? = null,
     val gpuPercent: Double? = null,
     val gpuTempC: Double? = null,
+    /** Which machine this is; only set when the app has more than one. */
+    val machine: String? = null,
 )
 
-fun Summary.toSnapshot(nowMs: Long = System.currentTimeMillis()): WidgetSnapshot {
+fun Summary.toSnapshot(nowMs: Long = System.currentTimeMillis(), machine: String? = null): WidgetSnapshot {
     val b = boinc.data
     val top = b?.active?.firstOrNull { it.status == "running" }
     val gpu = system.data?.gpus?.firstOrNull()
@@ -40,6 +42,7 @@ fun Summary.toSnapshot(nowMs: Long = System.currentTimeMillis()): WidgetSnapshot
         cpuPercent = system.data?.cpu?.usagePercent,
         gpuPercent = gpu?.utilPercent,
         gpuTempC = gpu?.tempC,
+        machine = machine,
     )
 }
 
@@ -54,6 +57,8 @@ data class WidgetConfig(
     /** Background opacity 0..100. 0 = fully transparent. */
     val opacity: Int = 0,
     val tone: TextTone = TextTone.System,
+    /** Server.id to show; null means the first machine in the app's list. */
+    val serverId: String? = null,
 )
 
 /** Keys in each widget's Glance state (a Preferences DataStore per widget). */
@@ -65,6 +70,7 @@ object WidgetKeys {
     val SHOW_GPU = booleanPreferencesKey("show_gpu")
     val OPACITY = intPreferencesKey("opacity")
     val TONE = stringPreferencesKey("tone")
+    val SERVER_ID = stringPreferencesKey("server_id")
 }
 
 fun Preferences.widgetConfig(): WidgetConfig {
@@ -76,6 +82,7 @@ fun Preferences.widgetConfig(): WidgetConfig {
         showGpu = this[WidgetKeys.SHOW_GPU] ?: d.showGpu,
         opacity = (this[WidgetKeys.OPACITY] ?: d.opacity).coerceIn(0, 100),
         tone = this[WidgetKeys.TONE]?.let { name -> TextTone.entries.firstOrNull { it.name == name } } ?: d.tone,
+        serverId = this[WidgetKeys.SERVER_ID],
     )
 }
 

@@ -89,9 +89,11 @@ To get updates automatically, install it with [Obtainium](https://github.com/Imr
 
 In the app, go to **Settings**, enter your server address and token, tap **Test connection**, then **Save**.
 
+Crunching on more than one computer? Install the server on each, then tap **Add machine** in Settings for each one. A **Machines** tab then shows them all side by side, and tapping the name under the title switches between them.
+
 ### Widget
 
-Long-press your home screen, choose **Widgets**, and add **Crunch-o-meter**. You can choose what it shows, how see-through the background is, and whether the text is light or dark. To change it later, long-press the widget.
+Long-press your home screen, choose **Widgets**, and add **Crunch-o-meter**. You can choose which machine it shows (if you have more than one), what it shows, how see-through the background is, and whether the text is light or dark. To change it later, long-press the widget.
 
 The widget updates every 15 minutes (Android doesn't allow more often in the background), and every minute while the app is open. Tap it to open the app.
 
