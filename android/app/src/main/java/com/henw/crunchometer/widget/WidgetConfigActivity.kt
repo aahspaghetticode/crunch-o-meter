@@ -48,6 +48,8 @@ import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.lifecycle.lifecycleScope
+import com.henw.crunchometer.data.Server
+import com.henw.crunchometer.data.SettingsStore
 import com.henw.crunchometer.ui.theme.CrunchOMeterTheme
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -75,16 +77,19 @@ class WidgetConfigActivity : ComponentActivity() {
             val glanceId = GlanceAppWidgetManager(this@WidgetConfigActivity).getGlanceIdBy(appWidgetId)
             val prefs: Preferences =
                 getAppWidgetState(this@WidgetConfigActivity, PreferencesGlanceStateDefinition, glanceId)
-            val initial = prefs.widgetConfig()
+            val servers = SettingsStore(this@WidgetConfigActivity).load().servers
+            val saved = prefs.widgetConfig()
+            // Unset or deleted: preselect the first machine, which is what it shows anyway.
+            val initial = saved.copy(serverId = (servers.firstOrNull { it.id == saved.serverId } ?: servers.firstOrNull())?.id)
             setContent {
                 CrunchOMeterTheme {
-                    ConfigScreen(initial, onSave = { save(it) })
+                    ConfigScreen(initial, servers, onSave = { save(it, previousServer = initial.serverId) })
                 }
             }
         }
     }
 
-    private fun save(cfg: WidgetConfig) {
+    private fun save(cfg: WidgetConfig, previousServer: String?) {
         lifecycleScope.launch {
             val glanceId = GlanceAppWidgetManager(this@WidgetConfigActivity).getGlanceIdBy(appWidgetId)
             updateAppWidgetState(this@WidgetConfigActivity, glanceId) { p ->
@@ -94,6 +99,9 @@ class WidgetConfigActivity : ComponentActivity() {
                 p[WidgetKeys.SHOW_GPU] = cfg.showGpu
                 p[WidgetKeys.OPACITY] = cfg.opacity
                 p[WidgetKeys.TONE] = cfg.tone.name
+                if (cfg.serverId != null) p[WidgetKeys.SERVER_ID] = cfg.serverId else p.remove(WidgetKeys.SERVER_ID)
+                // Another machine's numbers mustn't linger under this one until the refresh lands.
+                if (cfg.serverId != previousServer) p.remove(WidgetKeys.SNAPSHOT)
             }
             CrunchWidget().update(this@WidgetConfigActivity, glanceId)
             WidgetRefresher.schedule(this@WidgetConfigActivity)
@@ -105,7 +113,7 @@ class WidgetConfigActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ConfigScreen(initial: WidgetConfig, onSave: (WidgetConfig) -> Unit) {
+private fun ConfigScreen(initial: WidgetConfig, servers: List<Server>, onSave: (WidgetConfig) -> Unit) {
     var cfg by remember { mutableStateOf(initial) }
 
     Scaffold(topBar = { TopAppBar(title = { Text("Widget") }) }) { inner ->
@@ -117,6 +125,13 @@ private fun ConfigScreen(initial: WidgetConfig, onSave: (WidgetConfig) -> Unit) 
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Preview(cfg)
+
+            if (servers.size > 1) {
+                Text("Machine", style = MaterialTheme.typography.titleSmall)
+                servers.forEach { server ->
+                    RadioRow(server.displayName(), cfg.serverId == server.id) { cfg = cfg.copy(serverId = server.id) }
+                }
+            }
 
             Text("Show", style = MaterialTheme.typography.titleSmall)
             ToggleRow("Tasks and progress", cfg.showTasks) { cfg = cfg.copy(showTasks = it) }
@@ -137,22 +152,27 @@ private fun ConfigScreen(initial: WidgetConfig, onSave: (WidgetConfig) -> Unit) 
                 TextTone.Light to "Light, for dark wallpapers",
                 TextTone.Dark to "Dark, for light wallpapers",
             ).forEach { (tone, label) ->
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .selectable(selected = cfg.tone == tone, role = Role.RadioButton) { cfg = cfg.copy(tone = tone) }
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    RadioButton(selected = cfg.tone == tone, onClick = null)
-                    Text(label, Modifier.padding(start = 12.dp))
-                }
+                RadioRow(label, cfg.tone == tone) { cfg = cfg.copy(tone = tone) }
             }
 
             Button(onClick = { onSave(cfg) }, modifier = Modifier.fillMaxWidth()) {
                 Text("Save")
             }
         }
+    }
+}
+
+@Composable
+private fun RadioRow(label: String, selected: Boolean, onSelect: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onSelect)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(selected = selected, onClick = null)
+        Text(label, Modifier.padding(start = 12.dp))
     }
 }
 
