@@ -157,11 +157,13 @@ data class Cpu(
 data class Gpu(
     val index: Int = 0,
     val name: String = "",
+    val vendor: String = "",  // "nvidia" or "amd"; empty from older servers
     @SerialName("util_percent") val utilPercent: Double? = null,
     @SerialName("mem_util_percent") val memUtilPercent: Double? = null,
     @SerialName("mem_used_bytes") val memUsedBytes: Long? = null,
     @SerialName("mem_total_bytes") val memTotalBytes: Long? = null,
     @SerialName("temp_c") val tempC: Double? = null,
+    @SerialName("hotspot_temp_c") val hotspotTempC: Double? = null,  // AMD junction temperature
     @SerialName("power_w") val powerW: Double? = null,
     @SerialName("power_limit_w") val powerLimitW: Double? = null,
     @SerialName("core_clock_mhz") val coreClockMhz: Double? = null,

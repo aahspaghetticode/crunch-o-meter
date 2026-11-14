@@ -116,7 +116,13 @@ private fun GpuCard(gpu: Gpu, history: List<Double>) {
             BigNumber(fmt(gpu.utilPercent, "%"), "GPU usage", Modifier.weight(1f))
             Column(horizontalAlignment = Alignment.End) {
                 Text(fmt(gpu.tempC, " °C"), style = MaterialTheme.typography.titleMedium)
-                gpu.pstate?.let { Text("P$it", style = MaterialTheme.typography.bodySmall) }
+                gpu.hotspotTempC?.let {
+                    Text("hotspot ${fmt(it, " °C")}", style = MaterialTheme.typography.bodySmall)
+                }
+                val tag = listOfNotNull(vendorLabel(gpu.vendor), gpu.pstate?.let { "P$it" })
+                if (tag.isNotEmpty()) {
+                    Text(tag.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
+                }
             }
         }
         Sparkline(history, color = MaterialTheme.colorScheme.tertiary)
@@ -176,6 +182,12 @@ private fun LactGpuBlock(gpu: LactGpu) {
         }
         gpu.settings.forEach { s -> StatRow(prettyKey(s.key), s.value) }
     }
+}
+
+private fun vendorLabel(vendor: String): String? = when (vendor) {
+    "nvidia" -> "NVIDIA"
+    "amd" -> "AMD"
+    else -> null
 }
 
 /** clocks_configuration.gpu_clock_offsets -> Gpu clock offsets */

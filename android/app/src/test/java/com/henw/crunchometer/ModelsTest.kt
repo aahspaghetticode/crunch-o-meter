@@ -49,7 +49,15 @@ class ModelsTest {
         assertEquals("NVIDIA GeForce RTX 4090", lact.gpus.single().name)
         assertEquals("power_cap", lact.gpus.single().settings.first().key)
 
-        assertTrue(requireData(s.system.data).cpu.perCore.isNotEmpty())
+        val sys = requireData(s.system.data)
+        assertTrue(sys.cpu.perCore.isNotEmpty())
+        val gpu = sys.gpus.single()
+        assertEquals("amd", gpu.vendor)
+        assertEquals("AMD Radeon RX 7900 XT/7900 XTX/7900 GRE/7900M", gpu.name)
+        assertEquals(61.0, gpu.tempC!!, 0.001)
+        assertEquals(78.5, gpu.hotspotTempC!!, 0.001)
+        assertEquals(2500.0, gpu.maxCoreClockMhz!!, 0.001)
+        assertEquals(97.0, sys.history.gpu.single().last(), 0.001)
     }
 
     @Test
