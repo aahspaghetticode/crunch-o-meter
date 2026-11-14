@@ -22,3 +22,6 @@ password.txt
 
 # Built APKs
 dist/
+
+# setuptools build output
+server/build/
