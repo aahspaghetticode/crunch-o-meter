@@ -165,6 +165,7 @@ private fun MonitorApp(vm: MonitorViewModel = viewModel()) {
                     onSaveServer = vm::saveServer,
                     onDeleteServer = vm::deleteServer,
                     onRefreshChange = vm::setRefreshSeconds,
+                    onAlertsChange = vm::setAlerts,
                     onTest = vm::testConnection,
                     donations = state.donations,
                     onShowDonation = vm::openDonationDialog,

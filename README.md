@@ -99,6 +99,10 @@ Long-press your home screen, choose **Widgets**, and add **Crunch-o-meter**. You
 
 The widget updates every 15 minutes (Android doesn't allow more often in the background), and every minute while the app is open. Tap it to open the app.
 
+### Notifications
+
+Under **Settings → Notifications** you can get alerted when a machine goes offline (and when it's back), runs out of work, has a task fail, or gets hotter than a limit you choose. They're off until you turn them on. The app checks about every 15 minutes, also while it's closed, and notifies once when something changes rather than on every check. Each kind has its own channel in Android's notification settings, so you can silence one without the others.
+
 ## Gridcoin wallet
 
 Crunch-o-meter reads your magnitude and balance from the wallet on the same computer. Turn on the wallet's local RPC by adding these lines to `gridcoinresearch.conf` in your wallet's data folder (usually `~/.GridcoinResearch/`):

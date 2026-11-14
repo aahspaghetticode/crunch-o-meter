@@ -37,6 +37,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.henw.crunchometer.MainActivity
+import com.henw.crunchometer.data.SettingsStore
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -63,7 +64,8 @@ class CrunchWidgetReceiver : GlanceAppWidgetReceiver() {
 
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
-        WidgetRefresher.cancel(context)
+        // Last widget gone; alerts may still need the background check.
+        if (!SettingsStore(context).load().alerts.anyOn) WidgetRefresher.cancel(context)
     }
 }
 

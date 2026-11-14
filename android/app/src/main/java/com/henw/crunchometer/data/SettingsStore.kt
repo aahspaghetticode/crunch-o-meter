@@ -33,10 +33,23 @@ data class Server(
     }
 }
 
+/** Which background alerts are on. All off until the user turns them on. */
+data class AlertSettings(
+    val offline: Boolean = false,
+    val outOfWork: Boolean = false,
+    val taskErrors: Boolean = false,
+    val tooHot: Boolean = false,
+    /** CPU or GPU temperature that counts as too hot, °C. */
+    val maxTempC: Int = 85,
+) {
+    val anyOn: Boolean get() = offline || outOfWork || taskErrors || tooHot
+}
+
 data class AppSettings(
     val servers: List<Server> = emptyList(),
     val selectedId: String? = null,
     val refreshSeconds: Int = 5,
+    val alerts: AlertSettings = AlertSettings(),
 ) {
     val isConfigured: Boolean get() = servers.any { it.isConfigured }
 
@@ -71,6 +84,13 @@ class SettingsStore(context: Context) {
             servers = servers,
             selectedId = prefs.getString(KEY_SELECTED, null),
             refreshSeconds = prefs.getInt(KEY_REFRESH, 5),
+            alerts = AlertSettings(
+                offline = prefs.getBoolean(KEY_ALERT_OFFLINE, false),
+                outOfWork = prefs.getBoolean(KEY_ALERT_NO_WORK, false),
+                taskErrors = prefs.getBoolean(KEY_ALERT_ERRORS, false),
+                tooHot = prefs.getBoolean(KEY_ALERT_HOT, false),
+                maxTempC = prefs.getInt(KEY_ALERT_MAX_TEMP, 85),
+            ),
         )
         // Versions before multi-machine support kept one server_url/token pair. Move it
         // into the list once, and drop the old keys so there's one copy of the token.
@@ -82,6 +102,11 @@ class SettingsStore(context: Context) {
         putString(KEY_SERVERS, encodeServers(s.servers))
         if (s.selectedId != null) putString(KEY_SELECTED, s.selectedId) else remove(KEY_SELECTED)
         putInt(KEY_REFRESH, s.refreshSeconds)
+        putBoolean(KEY_ALERT_OFFLINE, s.alerts.offline)
+        putBoolean(KEY_ALERT_NO_WORK, s.alerts.outOfWork)
+        putBoolean(KEY_ALERT_ERRORS, s.alerts.taskErrors)
+        putBoolean(KEY_ALERT_HOT, s.alerts.tooHot)
+        putInt(KEY_ALERT_MAX_TEMP, s.alerts.maxTempC)
         remove(KEY_LEGACY_URL)
         remove(KEY_LEGACY_TOKEN)
     }
@@ -109,6 +134,11 @@ class SettingsStore(context: Context) {
         private const val KEY_LEGACY_URL = "server_url"
         private const val KEY_LEGACY_TOKEN = "token"
         private const val KEY_REFRESH = "refresh_seconds"
+        private const val KEY_ALERT_OFFLINE = "alert_offline"
+        private const val KEY_ALERT_NO_WORK = "alert_out_of_work"
+        private const val KEY_ALERT_ERRORS = "alert_task_errors"
+        private const val KEY_ALERT_HOT = "alert_too_hot"
+        private const val KEY_ALERT_MAX_TEMP = "alert_max_temp_c"
         private const val KEY_LAUNCHES = "donation_launches"
         private const val KEY_LAST_PROMPT = "donation_last_prompt_ms"
         private const val KEY_SILENCED = "donation_silenced"

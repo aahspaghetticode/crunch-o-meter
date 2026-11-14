@@ -15,6 +15,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.henw.crunchometer.alerts.Notifier
 import com.henw.crunchometer.data.ApiClient
 import com.henw.crunchometer.data.ApiException
 import com.henw.crunchometer.data.AppSettings
@@ -26,6 +27,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import java.util.concurrent.TimeUnit
 
+/** The background check: refreshes widgets and, when alerts are on, runs them. */
 object WidgetRefresher {
     private const val PERIODIC = "widget-refresh"
     private const val NOW = "widget-refresh-now"
@@ -60,14 +62,24 @@ object WidgetRefresher {
         WorkManager.getInstance(context).cancelUniqueWork(NOW)
     }
 
-    /** Fetches each machine that some widget shows, once, and pushes the results to those widgets. */
+    /** Runs the background check while a widget or an alert needs it, and stops it otherwise. */
+    suspend fun sync(context: Context) {
+        if (hasWidgets(context) || SettingsStore(context).load().alerts.anyOn) schedule(context) else cancel(context)
+    }
+
+    /**
+     * Fetches each machine that some widget shows (or every machine, when alerts are on) once,
+     * pushes the results to those widgets and runs the alerts.
+     */
     suspend fun fetchAndUpdate(context: Context) {
         val settings = SettingsStore(context).load()
         val manager = GlanceAppWidgetManager(context)
-        val wanted = manager.getGlanceIds(CrunchWidget::class.java).mapNotNull { id ->
+        val forWidgets = manager.getGlanceIds(CrunchWidget::class.java).mapNotNull { id ->
             val prefs: Preferences = getAppWidgetState(context, PreferencesGlanceStateDefinition, id)
             settings.serverFor(prefs[WidgetKeys.SERVER_ID])
-        }.distinctBy { it.id }.filter { it.isConfigured }
+        }
+        val forAlerts = if (settings.alerts.anyOn) settings.servers else emptyList()
+        val wanted = (forWidgets + forAlerts).distinctBy { it.id }.filter { it.isConfigured }
 
         val api = ApiClient()
         val results: Map<String, Result<Summary>> = coroutineScope {
@@ -94,6 +106,7 @@ object WidgetRefresher {
                 )
             }
         }
+        Notifier.check(context, settings, results)
     }
 
     /** Called by the app after its own refresh so widgets don't wait for the next 15-minute run. */

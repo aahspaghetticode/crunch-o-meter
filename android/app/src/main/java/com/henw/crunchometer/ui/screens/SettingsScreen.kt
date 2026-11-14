@@ -1,5 +1,11 @@
 package com.henw.crunchometer.ui.screens
 
+import android.Manifest
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,10 +22,12 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -27,11 +35,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import com.henw.crunchometer.alerts.Notifier
+import com.henw.crunchometer.data.AlertSettings
 import com.henw.crunchometer.data.AppSettings
 import com.henw.crunchometer.data.DonationState
 import com.henw.crunchometer.data.Donations
@@ -47,6 +59,7 @@ fun SettingsScreen(
     onSaveServer: (Server) -> Unit,
     onDeleteServer: (String) -> Unit,
     onRefreshChange: (Int) -> Unit,
+    onAlertsChange: (AlertSettings) -> Unit,
     onTest: suspend (Server) -> String,
     donations: DonationState,
     onShowDonation: () -> Unit,
@@ -112,7 +125,78 @@ fun SettingsScreen(
             )
         }
 
+        AlertsCard(settings.alerts, onAlertsChange)
+
         SupportCard(donations, onShowDonation, onDevCode)
+    }
+}
+
+@Composable
+private fun AlertsCard(alerts: AlertSettings, onChange: (AlertSettings) -> Unit) {
+    val context = LocalContext.current
+    // Re-read on resume: the user may have just allowed notifications in Android's settings.
+    var allowed by remember { mutableStateOf(Notifier.canNotify(context)) }
+    LifecycleResumeEffect(Unit) {
+        allowed = Notifier.canNotify(context)
+        onPauseOrDispose { }
+    }
+    val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        allowed = Notifier.canNotify(context)
+    }
+    var maxTemp by rememberSaveable(alerts.maxTempC) { mutableFloatStateOf(alerts.maxTempC.toFloat()) }
+
+    fun set(new: AlertSettings) {
+        // Android 13+ needs permission; ask when the first alert goes on.
+        if (new.anyOn && !alerts.anyOn && !allowed && Build.VERSION.SDK_INT >= 33) {
+            askPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        onChange(new)
+    }
+
+    SectionCard(title = "Notifications") {
+        SwitchRow("Machine goes offline", "And when it's back", alerts.offline) { set(alerts.copy(offline = it)) }
+        SwitchRow("Out of work", "No tasks running", alerts.outOfWork) { set(alerts.copy(outOfWork = it)) }
+        SwitchRow("Task errors", "A task finished with an error", alerts.taskErrors) { set(alerts.copy(taskErrors = it)) }
+        SwitchRow("Too hot", "CPU or GPU at ${maxTemp.roundToInt()} °C or more", alerts.tooHot) {
+            set(alerts.copy(tooHot = it))
+        }
+        if (alerts.tooHot) {
+            Slider(
+                value = maxTemp,
+                onValueChange = { maxTemp = it },
+                onValueChangeFinished = { onChange(alerts.copy(maxTempC = maxTemp.roundToInt())) },
+                valueRange = 60f..100f,
+            )
+        }
+        Text(
+            "Checked about every 15 minutes, also while the app is closed.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (alerts.anyOn && !allowed) {
+            Text(
+                "Notifications are turned off for Crunch-o-meter, so these won't show.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+            FilledTonalButton(onClick = {
+                context.startActivity(
+                    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                        .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName),
+                )
+            }) { Text("Open notification settings") }
+        }
+    }
+}
+
+@Composable
+private fun SwitchRow(label: String, detail: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.bodyLarge)
+            Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Switch(checked = checked, onCheckedChange = onChange)
     }
 }
 

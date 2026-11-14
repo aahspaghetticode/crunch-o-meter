@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import com.henw.crunchometer.data.AlertSettings
 import com.henw.crunchometer.data.ApiClient
 import com.henw.crunchometer.data.ApiException
 import com.henw.crunchometer.data.AppSettings
@@ -183,6 +184,12 @@ class MonitorViewModel(app: Application) : AndroidViewModel(app) {
         lastWidgetPushMs.remove(id)
         // Widgets that showed it fall back to the first machine.
         WidgetRefresher.refreshSoon(getApplication())
+    }
+
+    fun setAlerts(alerts: AlertSettings) {
+        changeSettings { it.copy(alerts = alerts) }
+        // Start the background check if this is the first alert on, stop it if nothing needs it now.
+        viewModelScope.launch { WidgetRefresher.sync(getApplication()) }
     }
 
     fun setRefreshSeconds(seconds: Int) {
