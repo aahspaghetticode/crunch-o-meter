@@ -1,10 +1,10 @@
 {
  "version": "1.0.0",
- "generated_at": 1794616188.195096,
+ "generated_at": 1794681239.8247273,
  "boinc": {
   "ok": true,
   "error": null,
-  "updated_at": 1794616188.1223714,
+  "updated_at": 1794681239.7368665,
   "data": {
    "projects": [
     {
@@ -108,7 +108,7 @@
  "gridcoin": {
   "ok": true,
   "error": null,
-  "updated_at": 1794616188.1149528,
+  "updated_at": 1794681239.7274816,
   "data": {
    "source": "wallet",
    "magnitude": 187.43,
@@ -140,8 +140,8 @@
     "researcher_status": "Eligible for Research Rewards"
    },
    "earnings": {
-    "per_hour": 0.999857,
-    "per_day": 23.9966,
+    "per_hour": 0.999853,
+    "per_day": 23.9965,
     "window_hours": 2.0,
     "samples": 122,
     "skipped_jumps": 0
@@ -151,42 +151,78 @@
  "system": {
   "ok": true,
   "error": null,
-  "updated_at": 1794616188.1230466,
+  "updated_at": 1794681239.7928483,
   "data": {
-   "hostname": "vm",
+   "hostname": "henw-linux",
    "cpu": {
-    "model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
-    "usage_percent": 1.9,
+    "model": "11th Gen Intel(R) Core(TM) i5-11260H @ 2.60GHz",
+    "usage_percent": 0.0,
     "per_core": [
      0.0,
-     3.9
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
     ],
-    "freq_mhz": 2100,
-    "temp_c": null,
+    "freq_mhz": 3200,
+    "temp_c": 94.0,
     "load_avg": [
-     0.06689453125,
-     0.037109375,
-     0.00439453125
+     13.63720703125,
+     13.736328125,
+     13.77783203125
     ],
-    "mem_used_bytes": 565108736,
-    "mem_total_bytes": 8413868032
+    "mem_used_bytes": 12642172928,
+    "mem_total_bytes": 67124912128
    },
-   "gpus": [],
-   "gpu_error": "NVML init failed: NVML Shared Library Not Found",
+   "gpus": [
+    {
+     "index": 0,
+     "name": "AMD Radeon RX 7900 XT/7900 XTX/7900 GRE/7900M",
+     "vendor": "amd",
+     "util_percent": 97.0,
+     "mem_util_percent": 41.0,
+     "mem_used_bytes": 6442450944,
+     "mem_total_bytes": 25769803776,
+     "temp_c": 61.0,
+     "hotspot_temp_c": 78.5,
+     "power_w": 301.2,
+     "power_limit_w": 339.0,
+     "core_clock_mhz": 2431,
+     "mem_clock_mhz": 1249,
+     "max_core_clock_mhz": 2500,
+     "max_mem_clock_mhz": 1250,
+     "fan_percent": 50,
+     "pstate": null
+    }
+   ],
+   "gpu_error": null,
    "history": {
     "cpu": [
      0.0,
-     0.0,
-     1.9
+     8.3,
+     0.0
     ],
-    "gpu": []
+    "gpu": [
+     [
+      97.0,
+      97.0,
+      97.0
+     ]
+    ]
    }
   }
  },
  "lact": {
   "ok": true,
   "error": null,
-  "updated_at": 1794616188.1217341,
+  "updated_at": 1794681239.7331848,
   "data": {
    "daemon_reachable": true,
    "daemon_error": null,

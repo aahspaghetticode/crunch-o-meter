@@ -26,7 +26,7 @@ Your BOINC client, Gridcoin wallet and GPU tools stay off the network. Only the 
 - A Linux computer running BOINC (tested on Arch Linux), with Python 3.11 or newer
 - Tailscale on that computer and on your phone
 - An Android phone running Android 8.0 or newer
-- Optional: the Gridcoin wallet for magnitude and balance, an NVIDIA GPU for GPU stats, and LACT for overclock settings
+- Optional: the Gridcoin wallet for magnitude and balance, an NVIDIA or AMD GPU for GPU stats, and LACT for overclock settings
 
 ## 1. Install the server
 
@@ -60,7 +60,7 @@ Each part shows `[ ok ]`, or `[fail]` with a reason. The usual fixes are below.
 | BOINC | `sudo usermod -aG boinc $USER`, then log out and back in |
 | Gridcoin | see [Gridcoin wallet](#gridcoin-wallet) below |
 | LACT | make sure your user is in a group listed under `admin_groups` in `/etc/lact/config.yaml` (`wheel` by default) |
-| CPU/GPU | GPU stats need the NVIDIA driver; everything else works without it |
+| CPU/GPU | NVIDIA GPUs need the NVIDIA driver; AMD GPUs need the `amdgpu` driver (the default on Linux). Everything else works without a GPU |
 
 Then start it in the background, and keep it running after reboots:
 

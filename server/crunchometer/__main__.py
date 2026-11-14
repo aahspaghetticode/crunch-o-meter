@@ -54,7 +54,8 @@ def _check(cfg) -> int:
     sampler = SystemSampler(cfg.system.history_samples)
     sysd = report("CPU/GPU", sampler.sample)
     if sysd:
-        print(f"       {sysd['cpu']['model']}, {len(sysd['gpus'])} NVIDIA GPU(s)"
+        gpus = ", ".join(g["name"] for g in sysd["gpus"]) or "no GPU"
+        print(f"       {sysd['cpu']['model']}; {gpus}"
               + (f"  ({sysd['gpu_error']})" if sysd["gpu_error"] else ""))
     sampler.close()
     if cfg.lact.enabled:

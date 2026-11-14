@@ -1,3 +1,4 @@
+import functools
 import json
 import time
 from pathlib import Path
@@ -5,6 +6,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from crunchometer import app as app_module
+from crunchometer import system
 from crunchometer.app import create_app
 from crunchometer.config import ConfigError, load_config
 
@@ -68,15 +71,22 @@ socket_path = "{svc['lact_socket']}"
 config_file = "{tmp / 'lact.yaml'}"
 poll_seconds = 1
 """)
-    app = create_app(load_config(cfg_path))
-    with TestClient(app) as c:
-        deadline = time.time() + 10
-        while time.time() < deadline:
-            d = c.get("/api/summary", headers={"Authorization": f"Bearer {TOKEN}"}).json()
-            if all(d[k]["data"] for k in ("boinc", "gridcoin", "system", "lact")):
-                break
-            time.sleep(0.2)
-        yield c
+    # One fake AMD card and no NVML, so the sample has the same GPU on every machine.
+    fakes.make_amd_card(tmp / "sys", 1)
+    (tmp / "pci.ids").write_text(fakes.PCI_IDS)
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(system, "pynvml", None)
+        mp.setattr(app_module, "SystemSampler", functools.partial(
+            system.SystemSampler, sysfs_root=tmp / "sys", pci_ids=str(tmp / "pci.ids")))
+        app = create_app(load_config(cfg_path))
+        with TestClient(app) as c:
+            deadline = time.time() + 10
+            while time.time() < deadline:
+                d = c.get("/api/summary", headers={"Authorization": f"Bearer {TOKEN}"}).json()
+                if all(d[k]["data"] for k in ("boinc", "gridcoin", "system", "lact")):
+                    break
+                time.sleep(0.2)
+            yield c
 
 
 def summary(client):
@@ -134,6 +144,14 @@ def test_gridcoin_balance_and_pending(client):
     assert w["unconfirmed"] == pytest.approx(3.25)
     assert w["pending_research_reward"] == pytest.approx(42.1875)
     assert w["researcher_status"] == "Eligible for Research Rewards"
+
+
+def test_system_amd_gpu(client):
+    s = summary(client)["system"]["data"]
+    assert s["gpu_error"] is None
+    (gpu,) = s["gpus"]
+    assert gpu["vendor"] == "amd" and gpu["hotspot_temp_c"] == 78.5
+    assert s["history"]["gpu"][0][-1] == 97.0
 
 
 def test_lact_settings_readable(client):

@@ -125,3 +125,54 @@ def start_all(tmpdir) -> dict:
     lact_server(sock)
     return {"boinc_port": boinc.server_address[1], "wallet_port": wallet.server_address[1],
             "lact_socket": sock, "password": PASSWORD}
+
+
+PCI_IDS = """\
+# fake pci.ids, trimmed to the shape of the real one
+1002  Advanced Micro Devices, Inc. [AMD/ATI]
+\t73bf  Navi 21 [Radeon RX 6800/6800 XT / 6900 XT]
+# a comment inside the vendor block
+\t744c  Navi 31 [Radeon RX 7900 XT/7900 XTX/7900 GRE/7900M]
+\t\t1002 0e3b  RX 7900 XTX / RX 7900 GRE [XFX]
+\t7480  Navi 33
+10de  NVIDIA Corporation
+\t744c  Not an AMD card
+"""
+
+
+def make_amd_card(root, n: int, device: str = "0x744c", vendor: str = "0x1002",
+                  full: bool = True) -> None:
+    """A fake <root>/class/drm/card<n> laid out like amdgpu's sysfs. `full=False` leaves out
+    hwmon and the optional files, the way a suspended or very old card looks."""
+    from pathlib import Path
+    drm = Path(root, "class/drm")
+    dev = drm / f"card{n}" / "device"
+    (drm / f"card{n}-DP-1").mkdir(parents=True, exist_ok=True)  # connector, must be skipped
+    dev.mkdir(parents=True)
+    (dev / "vendor").write_text(vendor + "\n")
+    (dev / "device").write_text(device + "\n")
+    if not full:
+        return
+    files = {
+        "gpu_busy_percent": "97",
+        "mem_busy_percent": "41",
+        "mem_info_vram_used": str(6 * 2**30),
+        "mem_info_vram_total": str(24 * 2**30),
+        "pp_dpm_sclk": "0: 500Mhz\n1: 1900Mhz *\n2: 2500Mhz\n",
+        "pp_dpm_mclk": "0: 96Mhz\n1: 456Mhz\n2: 1250Mhz *\n",
+    }
+    hwmon = {
+        "temp1_label": "edge", "temp1_input": "61000",
+        "temp2_label": "junction", "temp2_input": "78500",
+        "temp3_label": "mem", "temp3_input": "70000",
+        "power1_input": "301250000", "power1_cap": "339000000",  # RDNA3: no power1_average
+        "freq1_label": "sclk", "freq1_input": "2431000000",
+        "freq2_label": "mclk", "freq2_input": "1249000000",
+        "pwm1": "128", "pwm1_max": "255",
+    }
+    for name, text in files.items():
+        (dev / name).write_text(text)
+    hw = dev / "hwmon" / f"hwmon{n + 3}"
+    hw.mkdir(parents=True)
+    for name, text in hwmon.items():
+        (hw / name).write_text(text + "\n")

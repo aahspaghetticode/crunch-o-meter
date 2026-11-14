@@ -10,6 +10,7 @@ depends=('python' 'python-fastapi' 'uvicorn' 'python-psutil' 'python-yaml')
 makedepends=('python-build' 'python-installer' 'python-wheel' 'python-setuptools')
 optdepends=(
   'python-nvidia-ml-py: NVIDIA GPU stats'
+  'hwdata: AMD GPU model names'
   'boinc: the BOINC client it reports on'
   'tailscale: reach the server from your phone'
   'lact: show GPU overclock settings'

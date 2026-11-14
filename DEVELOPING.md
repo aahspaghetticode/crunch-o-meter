@@ -8,7 +8,7 @@ Setup for using the app is in the [README](README.md). This file covers building
 phone ──tailnet──▶ tailscale serve (HTTPS) ──▶ crunch-o-meter on 127.0.0.1:8765
                                                  ├─ BOINC GUI RPC        127.0.0.1:31416
                                                  ├─ Gridcoin wallet RPC  127.0.0.1:15715
-                                                 ├─ NVML + psutil
+                                                 ├─ NVML, amdgpu sysfs + psutil
                                                  └─ LACT config + daemon socket (read-only)
 ```
 
@@ -103,8 +103,8 @@ The reminder appears from the third launch, at most once every four days, and on
 
 ```
 server/
-  crunchometer/        boinc_rpc, gridcoin, system (CPU/NVML), lact, app (FastAPI), __main__
-  tests/               fakes for BOINC, the wallet and LACT, plus API tests
+  crunchometer/        boinc_rpc, gridcoin, system (CPU/NVML/amdgpu), lact, app (FastAPI), __main__
+  tests/               fakes for BOINC, the wallet, LACT and amdgpu sysfs, plus API tests
   config.example.toml
   crunch-o-meter.service
 android/app/src/main/java/com/henw/crunchometer/
