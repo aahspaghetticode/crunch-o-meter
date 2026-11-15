@@ -4,6 +4,8 @@
 
 Keep an eye on your BOINC machine from your phone.
 
+[<img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/aahspaghetticode/crunch-o-meter)
+
 - **Tasks:** progress on everything running, what's queued, and what finished recently.
 - **Gridcoin:** your magnitude, wallet balance and pending research reward.
 - **System:** CPU and GPU load with live graphs, temperatures, clocks, power draw, VRAM and fan speed.
@@ -85,9 +87,7 @@ The second command prints your server's address, something like `https://my-pc.t
 
 Download the latest APK from the [Releases](https://github.com/aahspaghetticode/crunch-o-meter/releases) page and open it on your phone.
 
-To get updates automatically, install it with [Obtainium](https://github.com/ImranR98/Obtainium) instead: tap **Add App**, paste `https://github.com/aahspaghetticode/crunch-o-meter`, and tap **Add**. Obtainium installs the latest release and lets you know when a new one is out. Or, with Obtainium already installed, tap the badge on your phone:
-
-[<img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/aahspaghetticode/crunch-o-meter)
+To get updates automatically, install it with [Obtainium](https://github.com/ImranR98/Obtainium) instead: tap the badge at the top of this readme. Obtainium installs the latest release and lets you know when a new one is out.
 
 In the app, go to **Settings**, enter your server address and token, tap **Test connection**, then **Save**.
 
