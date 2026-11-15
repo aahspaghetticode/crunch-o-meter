@@ -19,7 +19,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.henw.crunchometer.data.Server
 import com.henw.crunchometer.data.Summary
+import com.henw.crunchometer.ui.FleetTotals
 import com.henw.crunchometer.ui.MachineState
+import com.henw.crunchometer.ui.components.SectionCard
 import com.henw.crunchometer.ui.components.Pill
 import com.henw.crunchometer.ui.components.StatRow
 import com.henw.crunchometer.ui.components.fmt
@@ -35,7 +37,9 @@ fun MachinesScreen(
     onOpen: (String) -> Unit,
     contentPadding: PaddingValues,
 ) {
+    val fleet = FleetTotals.of(servers.map { nameOf(it) to machine(it.id) })
     LazyColumn(contentPadding = contentPadding, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        item(key = "fleet") { FleetCard(fleet) }
         items(servers, key = { it.id }) { server ->
             MachineCard(nameOf(server), machine(server.id), server.id == selectedId) { onOpen(server.id) }
         }
@@ -94,4 +98,39 @@ private fun MachineStats(s: Summary) {
     s.boinc.data?.projects?.let { projects ->
         StatRow("Host RAC", formatNumber(projects.sumOf { it.hostRac }))
     }
+}
+
+@Composable
+private fun FleetCard(f: FleetTotals) {
+    val c = MaterialTheme.colorScheme
+    SectionCard(
+        title = "All machines",
+        trailing = {
+            val allUp = f.online == f.machines
+            Pill(
+                "${f.online}/${f.machines} online",
+                if (allUp) c.primaryContainer else c.errorContainer,
+                if (allUp) c.onPrimaryContainer else c.onErrorContainer,
+            )
+        },
+    ) {
+        StatRow("Tasks", "${f.running} running · ${f.queued} queued")
+        if (f.errors > 0) StatRow("Errors", f.errors.toString())
+        StatRow("Host RAC", formatNumber(f.hostRac))
+        f.grcPerDay?.let { StatRow("Earning", formatNumber(it, 2) + " GRC/day") }
+        f.gpuPowerW?.let { StatRow("GPU power", fmt(it, " W")) }
+        f.hottest?.let { StatRow("Hottest", "${fmt(it.tempC, " °C")} · ${it.machine} ${it.part}") }
+        if (f.needsAttention) {
+            Text("Needs attention", style = MaterialTheme.typography.labelLarge, color = c.error)
+            AttentionLine("Offline", f.offline)
+            AttentionLine("Nothing running", f.idle)
+            AttentionLine("Task errors", f.withErrors)
+        }
+    }
+}
+
+@Composable
+private fun AttentionLine(label: String, names: List<String>) {
+    if (names.isEmpty()) return
+    StatRow(label, names.joinToString(", "))
 }
